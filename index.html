@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Garage Code</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Learn Python by running a car garage. Every job is a coding problem.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400;700&display=swap">
+<style>
+/* Layout: one workshop column. Till bar, job board, the bay, Les, job sheet, workbench, readout, job maker. */
+:root{
+  --bg:#e3e7ea; --surface:#f5f6f4; --ink:#1b2430; --muted:#566170; --line:#c4cbd2;
+  --accent:#d4561a; --accent-ink:#ffffff; --navy:#1f3a5f; --ok:#22804a; --bad:#bc3424;
+  --sheet:#fbf1c2; --sheet-rule:#e2d08a; --sheet-ink:#2b2a1d; --pen:#1c3d8c; --stamp:#c0392b;
+  --manual:#eef3f7; --manual-ink:#1d2a38; --manual-edge:#9fb3c6;
+  --wall:#d2d9de; --wall-2:#c3cbd1; --floor:#959ea7; --post:#e0a514; --tyre:#1d2228; --rim:#b8c0c8; --glass:#a7c8dc; --hazard:#1d2228;
+  --plate:#f3c614; --plate-ink:#111111;
+  --code-bg:#121820; --code-ink:#dde5ed; --code-dim:#66768a; --code-rule:#222d3a; --code-ok:#7fd49a; --code-err:#ff8a7a; --code-key:#2a3644;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --f-hand:"Kalam","Comic Sans MS","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13171c; --surface:#1b2128; --ink:#e6ebf0; --muted:#97a3b0; --line:#2e3843;
+  --accent:#ef7434; --accent-ink:#1a0f08; --navy:#9dbde6; --ok:#5cc681; --bad:#f06c5b;
+  --sheet:#2a2716; --sheet-rule:#4a4325; --sheet-ink:#efe8c8; --pen:#9fb9ff; --stamp:#ff7d6b;
+  --manual:#1c2733; --manual-ink:#dbe6f1; --manual-edge:#3d5368;
+  --wall:#232b33; --wall-2:#1c232a; --floor:#36404a; --post:#c8930f; --tyre:#0c0f12; --rim:#8b96a1; --glass:#5d7f94; --hazard:#0c0f12;
+  --plate:#e5b80f; --plate-ink:#111111;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13171c; --surface:#1b2128; --ink:#e6ebf0; --muted:#97a3b0; --line:#2e3843;
+  --accent:#ef7434; --accent-ink:#1a0f08; --navy:#9dbde6; --ok:#5cc681; --bad:#f06c5b;
+  --sheet:#2a2716; --sheet-rule:#4a4325; --sheet-ink:#efe8c8; --pen:#9fb9ff; --stamp:#ff7d6b;
+  --manual:#1c2733; --manual-ink:#dbe6f1; --manual-edge:#3d5368;
+  --wall:#232b33; --wall-2:#1c232a; --floor:#36404a; --post:#c8930f; --tyre:#0c0f12; --rim:#8b96a1; --glass:#5d7f94; --hazard:#0c0f12;
+  --plate:#e5b80f; --plate-ink:#111111;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+[hidden]{display:none!important}
+.app{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Till bar */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand-name{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:.9;letter-spacing:.01em;text-transform:uppercase;display:block}
+.brand-name em{font-style:normal;color:var(--accent)}
+.brand-sub{display:block;margin-top:4px;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.brand-sub b{color:var(--ink);font-weight:600}
+.till{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.till-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.till-num{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.till-num.bump{animation:bump .5s ease}
+@keyframes bump{40%{transform:scale(1.18);color:var(--ok)}}
+.sound{white-space:nowrap;background:none;border:0;padding:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sound:hover{color:var(--ink)}
+
+/* Job board */
+.jobs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.jobs::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 10px;display:flex;gap:8px;align-items:baseline;font-size:13px}
+.chip .n{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.chip[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.chip.done .t::after{content:" ✓";color:var(--ok);font-weight:600}
+.chip.custom{border-style:dashed}
+.chip.make{border-style:dashed;color:var(--accent);font-weight:600}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+
+/* The bay */
+.bay{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--wall)}
+#scene{display:block;width:100%;height:auto}
+#rig{transition:transform .9s cubic-bezier(.3,.7,.2,1)}
+.lifted #rig{transform:translateY(-18px)}
+.plate{position:absolute;top:10px;left:10px;background:var(--plate);color:var(--plate-ink);font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:.06em;padding:2px 10px 1px;border-radius:4px;border:2px solid var(--plate-ink);line-height:1.15;min-width:118px;text-align:center;white-space:nowrap}
+.bayno{position:absolute;top:10px;right:12px;font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.14em;color:var(--muted)}
+.hud{display:flex;gap:6px;padding:8px;background:var(--surface);border-top:1px solid var(--line);flex-wrap:wrap}
+.badge{flex:1 1 0;min-width:84px;border:1px dashed var(--line);border-radius:6px;padding:4px 8px;font-size:12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.badge b{font-family:var(--f-mono);font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.badge span{color:var(--muted);overflow-wrap:anywhere}
+.badge.right{border-style:solid;border-color:var(--ok)}
+.badge.right b{color:var(--ok)}
+.badge.wrong{border-style:solid;border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.badge.wrong b{color:var(--bad)}
+.badge.lit{border-style:solid;border-color:var(--post)}
+.nut{fill:var(--rim);transition:fill .25s}
+.nut.lit{fill:var(--post)}
+#beam{opacity:0}
+.flash #beam{animation:beam 1.2s ease}
+.flash #headlamp{animation:lamp 1.2s ease}
+@keyframes beam{10%,30%,55%,75%{opacity:.55}0%,20%,45%,65%,100%{opacity:0}}
+@keyframes lamp{10%,30%,55%,75%{fill:#fff6c8}0%,20%,45%,65%,100%{fill:var(--glass)}}
+#smoke circle{opacity:0;transform-box:fill-box;transform-origin:center}
+.smoking #smoke circle{animation:puff 1.6s ease-out}
+.smoking #smoke circle:nth-child(2){animation-delay:.2s}
+.smoking #smoke circle:nth-child(3){animation-delay:.4s}
+@keyframes puff{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:.7}100%{opacity:0;transform:translate(-10px,-40px) scale(1.6)}}
+.shake #rig{animation:shake .45s ease}
+@keyframes shake{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.roll #car{animation:roll .5s ease-out}
+@keyframes roll{from{transform:translateX(-60px);opacity:.2}to{transform:none;opacity:1}}
+
+/* Les */
+.les{display:flex;gap:10px;align-items:flex-start}
+.les-badge{flex:0 0 auto;width:42px;height:42px;border-radius:50%;background:var(--navy);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:15px;letter-spacing:.06em}
+.les-bubble{min-width:0;flex:1;background:var(--surface);border:1px solid var(--line);border-radius:4px 12px 12px 12px;padding:8px 12px}
+.les-name{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#les{margin:0;white-space:pre-line}
+
+/* Job sheet, carbon-copy style */
+.sheet{background:var(--sheet);color:var(--sheet-ink);border-radius:3px;padding:14px 16px 16px;box-shadow:0 1px 0 var(--sheet-rule),0 6px 14px -10px rgba(0,0,0,.35);
+  background-image:repeating-linear-gradient(transparent 0 27px,var(--sheet-rule) 27px 28px);background-position:0 62px}
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--f-display);font-weight:800;letter-spacing:.12em;font-size:14px;text-transform:uppercase}
+.sheet-head .no{color:var(--stamp);font-family:var(--f-mono);font-size:13px;letter-spacing:0}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;margin:8px 0 6px}
+.field{display:flex;gap:6px;align-items:baseline;min-width:0;line-height:28px}
+.field span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;flex:0 0 auto}
+.field b{font-family:var(--f-hand);font-weight:700;color:var(--pen);font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-title{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1;margin:10px 0 4px;text-transform:uppercase;text-wrap:balance}
+.boss{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--stamp);border:1px solid currentColor;border-radius:3px;padding:0 5px;vertical-align:middle;margin-left:6px}
+.brief{margin:0 0 10px;max-width:62ch;line-height:28px;overflow-wrap:anywhere}
+.brief code,.manual code{font-family:var(--f-mono);font-size:13px;background:color-mix(in srgb,currentColor 10%,transparent);padding:0 4px;border-radius:3px}
+.manual{background:var(--manual);color:var(--manual-ink);border-left:3px solid var(--manual-edge);border-radius:2px 6px 6px 2px;padding:10px 12px;margin:4px 0 12px;line-height:1.5}
+.manual-label{font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.manual p{margin:2px 0 8px;max-width:62ch}
+.manual pre{margin:0;font-family:var(--f-mono);font-size:13px;background:var(--code-bg);color:var(--code-ink);border-radius:5px;padding:8px 10px;overflow-x:auto;line-height:1.55}
+.target{font-family:var(--f-mono);font-size:13px;background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:10px 12px;white-space:pre;overflow-x:auto;line-height:1.6}
+.target-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;margin-bottom:4px}
+.teaches{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.teaches span{font-family:var(--f-mono);font-size:12px;border:1px solid currentColor;border-radius:999px;padding:1px 9px;opacity:.8}
+.mine{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mini{background:transparent;border:1px solid currentColor;border-radius:6px;padding:4px 10px;font-size:13px;color:inherit}
+.mini.danger{color:var(--stamp)}
+.share{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.share textarea{width:100%;font-family:var(--f-mono);font-size:12px;border-radius:6px;border:1px solid var(--sheet-rule);background:var(--surface);color:var(--ink);padding:8px;resize:vertical}
+
+/* Workbench */
+.bench{background:var(--code-bg);border-radius:10px;overflow:hidden;color:var(--code-ink)}
+.bench-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--code-rule);font-family:var(--f-mono);font-size:12px;color:var(--code-dim)}
+.linkbtn{background:none;border:0;color:var(--code-dim);font-family:var(--f-mono);font-size:12px;padding:4px 6px;border-radius:4px}
+.linkbtn:hover{color:var(--code-ink)}
+.editor{display:flex;min-height:190px}
+.gutter{margin:0;padding:12px 8px 12px 12px;text-align:right;color:var(--code-dim);font-family:var(--f-mono);font-size:16px;line-height:1.55;user-select:none;overflow:hidden;min-width:38px}
+.gutter .e{color:var(--code-err);font-weight:600}
+#code{flex:1;min-width:0;background:transparent;color:var(--code-ink);border:0;resize:none;outline:none;padding:12px 12px 12px 4px;font-family:var(--f-mono);font-size:16px;line-height:1.55;white-space:pre;overflow:auto;tab-size:4;caret-color:var(--accent);min-height:190px}
+.keys{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--code-rule);overflow-x:auto;scrollbar-width:none}
+.keys::-webkit-scrollbar{display:none}
+.key{flex:0 0 auto;background:var(--code-key);border:0;border-radius:6px;color:var(--code-ink);font-family:var(--f-mono);font-size:15px;padding:7px 11px;min-width:40px}
+.key:active{transform:translateY(1px)}
+.actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--code-rule)}
+.btn{border-radius:8px;border:0;padding:12px 16px;font-weight:600;font-size:15px}
+.btn.ghost{background:transparent;color:var(--code-ink);border:1px solid var(--code-rule)}
+.btn.run{flex:1;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px}
+.btn:disabled{opacity:.55;cursor:wait}
+
+/* Readout */
+.readout{background:var(--code-bg);color:var(--code-ink);border-radius:10px;overflow:hidden}
+.readout-head{padding:8px 12px;border-bottom:1px solid var(--code-rule);font-family:var(--f-mono);font-size:12px;color:var(--code-dim);display:flex;justify-content:space-between}
+#out{margin:0;padding:10px 12px 14px;font-family:var(--f-mono);font-size:14px;line-height:1.6;min-height:64px;white-space:pre-wrap;word-break:break-word}
+#out .dim{color:var(--code-dim)}
+#out .err{color:var(--code-err)}
+#out .ok{color:var(--code-ok)}
+
+/* Paid panel */
+.paid{border:2px solid var(--ok);border-radius:10px;padding:14px 16px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.paid h3{margin:0;font-family:var(--f-display);font-weight:800;font-size:26px;text-transform:uppercase;color:var(--ok);line-height:1}
+.paid ul{margin:0;padding-left:18px;font-variant-numeric:tabular-nums}
+.paid p{margin:0;color:var(--muted)}
+.btn.dark{align-self:flex-start;background:var(--ink);color:var(--bg)}
+
+/* Job maker */
+.builder{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.builder-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.builder h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:26px;text-transform:uppercase;line-height:1}
+.builder .lede{margin:0;color:var(--muted);max-width:62ch}
+.builder label{display:flex;flex-direction:column;gap:4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.builder .opt{text-transform:none;letter-spacing:0;font-size:12px;opacity:.8}
+.builder input,.builder textarea{font:inherit;font-size:16px;text-transform:none;letter-spacing:0;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+.builder textarea.mono{font-family:var(--f-mono);font-size:15px;line-height:1.5;white-space:pre;overflow:auto;background:var(--code-bg);color:var(--code-ink);border-color:var(--code-rule);tab-size:4}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bmsg{margin:0;font-size:14px;min-height:1em}
+.bmsg.err{color:var(--bad)}
+.bmsg.ok{color:var(--ok)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);align-self:flex-start}
+.btn.small{padding:8px 12px;font-size:14px;background:var(--ink);color:var(--bg);align-self:flex-start}
+.builder details{border-top:1px solid var(--line);padding-top:10px}
+.builder summary{cursor:pointer;font-weight:600}
+.builder details[open]{display:flex;flex-direction:column;gap:8px}
+.example-note{font-size:12px;color:var(--muted);margin:0}
+.foot{font-size:12px;color:var(--muted);text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center}
+.foot button{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:12px;padding:2px}
+@media (max-width:420px){.brand-name{font-size:28px}.job-title{font-size:24px}.fields{grid-template-columns:minmax(0,1fr)}.row2{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <span class="brand-name">Garage <em>Code</em></span>
+      <span class="brand-sub"><b id="rank">Apprentice</b> · Bay 1</span>
+    </div>
+    <div class="till">
+      <span class="till-label">Takings</span><span id="cash" class="till-num">£0</span>
+      <button class="sound" id="soundBtn" type="button">Sound on</button>
+    </div>
+  </header>
+
+  <nav class="jobs" id="jobs" aria-label="Job board"></nav>
+
+  <section class="bay" id="bay" aria-label="Workshop bay">
+    <svg id="scene" viewBox="0 0 360 170" role="img" aria-label="A car on a two-post lift">
+      <rect x="0" y="0" width="360" height="148" fill="var(--wall)"/>
+      <rect x="0" y="0" width="360" height="6" fill="var(--wall-2)"/>
+      <rect x="120" y="10" width="120" height="4" rx="2" fill="var(--wall-2)"/>
+      <g fill="none" stroke="var(--wall-2)" stroke-width="3" stroke-linecap="round">
+        <path d="M140 30 l0 22 M150 30 l0 18 M160 30 l0 26 M170 30 l0 20 M180 30 l0 24"/>
+        <path d="M196 34 h30 M196 44 h24"/>
+      </g>
+      <rect x="0" y="146" width="360" height="24" fill="var(--floor)"/>
+      <rect x="0" y="146" width="360" height="3" fill="var(--wall-2)"/>
+      <rect x="18" y="40" width="10" height="108" fill="var(--post)"/>
+      <rect x="332" y="40" width="10" height="108" fill="var(--post)"/>
+      <rect x="16" y="36" width="14" height="6" fill="var(--hazard)"/>
+      <rect x="330" y="36" width="14" height="6" fill="var(--hazard)"/>
+      <g id="rig">
+        <rect x="16" y="118" width="14" height="10" fill="var(--hazard)"/>
+        <rect x="330" y="118" width="14" height="10" fill="var(--hazard)"/>
+        <rect x="28" y="121" width="56" height="4" fill="var(--hazard)"/>
+        <rect x="282" y="121" width="50" height="4" fill="var(--hazard)"/>
+        <g id="car">
+          <polygon id="beam" points="320,86 360,72 360,110 320,94" fill="#fff6c8"/>
+          <path id="body" d="M58 120 L58 96 Q60 83 78 81 L118 78 Q140 52 176 48 L230 48 Q252 50 272 74 L302 80 Q320 84 322 100 L322 120 Z" fill="#b8402c"/>
+          <path d="M128 77 Q145 57 175 53 L198 53 L198 77 Z" fill="var(--glass)"/>
+          <path d="M204 53 L229 53 Q246 55 262 76 L204 77 Z" fill="var(--glass)"/>
+          <path d="M60 104 L320 104" stroke="rgba(0,0,0,.18)" stroke-width="2"/>
+          <ellipse id="headlamp" cx="315" cy="90" rx="6" ry="4" fill="var(--glass)"/>
+          <rect x="58" y="88" width="5" height="10" rx="1" fill="#e04a3a"/>
+          <circle cx="110" cy="124" r="25" fill="var(--hazard)" opacity=".85"/>
+          <circle cx="262" cy="124" r="25" fill="var(--hazard)" opacity=".85"/>
+          <circle cx="110" cy="124" r="21" fill="var(--tyre)"/>
+          <circle cx="110" cy="124" r="12" fill="var(--rim)" opacity=".55"/>
+          <g id="nutsR"></g>
+          <circle cx="262" cy="124" r="21" fill="var(--tyre)"/>
+          <circle cx="262" cy="124" r="12" fill="var(--rim)" opacity=".55"/>
+          <g id="nutsF"></g>
+          <g id="smoke" fill="#9aa3ab">
+            <circle cx="292" cy="72" r="8"/><circle cx="300" cy="70" r="10"/><circle cx="286" cy="66" r="7"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+    <div class="plate" id="plate">GC21 KRS</div>
+    <div class="bayno">BAY 1</div>
+    <div class="hud" id="hud" hidden></div>
+  </section>
+
+  <section class="les" aria-live="polite">
+    <div class="les-badge" aria-hidden="true">LES</div>
+    <div class="les-bubble"><div class="les-name">Les · workshop foreman</div><p id="les"></p></div>
+  </section>
+
+  <section class="sheet" aria-label="Job sheet">
+    <div class="sheet-head"><span>Job sheet</span><span class="no">No. <span id="jobno"></span></span></div>
+    <div class="fields">
+      <div class="field"><span>Customer</span><b id="fCust"></b></div>
+      <div class="field"><span>Vehicle</span><b id="fCar"></b></div>
+      <div class="field"><span>Reg</span><b id="fReg"></b></div>
+      <div class="field"><span>Mileage</span><b id="fMiles"></b></div>
+    </div>
+    <h2 class="job-title" id="jobTitle"></h2>
+    <div class="manual" id="manual" hidden>
+      <div class="manual-label">Workshop manual · <span id="manTitle"></span></div>
+      <p id="manBody"></p>
+      <pre id="manEx"></pre>
+    </div>
+    <p class="brief" id="brief"></p>
+    <div id="targetWrap"><div class="target-label" id="targetLabel">Readout should show</div><div class="target" id="target"></div></div>
+    <div class="teaches" id="teaches"></div>
+    <div class="mine" id="mine" hidden>
+      <button class="mini" type="button" id="editJob">Edit job</button>
+      <button class="mini" type="button" id="shareJob">Share code</button>
+      <button class="mini danger" type="button" id="delJob">Delete</button>
+    </div>
+    <div class="share" id="shareBox" hidden>
+      <div class="target-label">Send this code to a mate. They paste it into Import on their job maker.</div>
+      <textarea id="shareCode" rows="3" readonly></textarea>
+      <button class="mini" type="button" id="copyShare">Copy code</button>
+    </div>
+  </section>
+
+  <section class="bench" aria-label="Workbench">
+    <div class="bench-head"><span>workbench.py</span><button class="linkbtn" id="resetBtn" type="button">Reset code</button></div>
+    <div class="editor">
+      <pre class="gutter" id="gutter" aria-hidden="true">1</pre>
+      <textarea id="code" aria-label="Your Python code" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off"></textarea>
+    </div>
+    <div class="keys" id="keys" aria-label="Code keys"></div>
+    <div class="actions">
+      <button class="btn ghost" id="hintBtn" type="button">Ask Les · £5</button>
+      <button class="btn run" id="runBtn" type="button">Run job</button>
+    </div>
+  </section>
+
+  <section class="readout" aria-label="Diagnostic readout">
+    <div class="readout-head"><span>Diagnostic readout</span><span id="runs"></span></div>
+    <pre id="out" aria-live="polite"></pre>
+  </section>
+
+  <section class="paid" id="paid" hidden></section>
+
+  <section class="builder" id="builder" hidden aria-label="Job maker">
+    <div class="builder-head"><h2 id="bHeading">Make a job</h2><button class="mini" type="button" id="bClose">Close</button></div>
+    <p class="lede">Write the job, then your own working answer. The game runs your answer to work out what the readout should show, and players have to match it.</p>
+    <p class="example-note" id="bExampleNote">An example job is filled in below. Change anything you like.</p>
+    <label for="bTitle">Job title<input id="bTitle" maxlength="40"></label>
+    <div class="row2">
+      <label for="bCar">Car<input id="bCar" maxlength="28"></label>
+      <label for="bReg">Reg<input id="bReg" maxlength="9"></label>
+    </div>
+    <label for="bBrief">Brief<textarea id="bBrief" rows="3"></textarea></label>
+    <label for="bSol">Your answer (Python)<textarea id="bSol" class="mono" rows="6" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off"></textarea></label>
+    <label for="bTests">Test cars <span class="opt">Optional. One car per line, e.g. bulbs = 1; side = "left"</span><textarea id="bTests" class="mono" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off"></textarea></label>
+    <div class="row2">
+      <label for="bMust">Must use <span class="opt">Optional, e.g. for</span><input id="bMust" maxlength="20" autocapitalize="off"></label>
+      <label for="bHint">Hint for players <span class="opt">Optional</span><input id="bHint" maxlength="140"></label>
+    </div>
+    <label for="bStart">Starter code <span class="opt">Optional</span><textarea id="bStart" class="mono" rows="2" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="off"></textarea></label>
+    <p class="bmsg" id="bMsg" role="status"></p>
+    <button class="btn primary" id="bSave" type="button">Test and add to board</button>
+    <details>
+      <summary>Import a job from a mate</summary>
+      <label for="bImport">Job code<textarea id="bImport" class="mono" rows="3" placeholder="GC1.…" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></label>
+      <button class="btn small" id="bImportBtn" type="button">Import job</button>
+    </details>
+  </section>
+
+  <p class="foot"><span>Garage Code · Kralnu Games</span><button type="button" id="resetAll">Reset progress</button></p>
+</div>
+
+<script id="py">
+/* Garage Code's Python engine: a small Python subset that runs in the browser.
+   Supports print, variables, numbers, text, f-strings (with :.2f), lists, if/elif/else,
+   for/while, break/continue, def/return, common built-ins and text/list methods,
+   with plain-English error messages for beginners. */
+const Py=(()=>{
+class PyErr extends Error{constructor(type,msg,line){super(msg);this.type=type;this.line=line}}
+class Fl{constructor(v){this.v=v}}
+class Fn{constructor(name,params,body,scope){this.name=name;this.params=params;this.body=body;this.scope=scope}}
+class Ret{constructor(v){this.v=v}}
+const BRK={brk:1},CONT={cont:1};
+const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const isF=x=>x instanceof Fl, isNum=x=>typeof x==='number'||isF(x), nv=x=>isF(x)?x.v:x, isFn=x=>x instanceof Fn;
+function tn(x){if(typeof x==='string')return'str';if(typeof x==='boolean')return'bool';if(isF(x))return'float';if(typeof x==='number')return'int';if(Array.isArray(x))return'list';if(x===null||x===undefined)return'NoneType';if(isFn(x)||typeof x==='function')return'function';return'object'}
+const KIND={str:'text (str)',int:'whole number (int)',float:'decimal (float)',bool:'True/False (bool)',list:'list',NoneType:'None',function:'function'};
+const ka=x=>'a '+(KIND[tn(x)]||tn(x));
+function fmtF(v){if(!isFinite(v))return v>0?'inf':'-inf';if(Number.isInteger(v)&&Math.abs(v)<1e16)return v.toFixed(1);return String(v)}
+function repr(x){if(typeof x==='string')return"'"+x.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";if(x===true)return'True';if(x===false)return'False';if(x===null||x===undefined)return'None';if(isF(x))return fmtF(x.v);if(typeof x==='number')return String(x);if(Array.isArray(x))return'['+x.map(repr).join(', ')+']';if(isFn(x))return`<function ${x.name}>`;if(typeof x==='function')return'<built-in function>';return String(x)}
+function pstr(x){return typeof x==='string'?x:repr(x)}
+function truthy(x){if(isF(x))return x.v!==0;if(Array.isArray(x))return x.length>0;return !!x}
+function clone(x){return Array.isArray(x)?x.map(clone):x}
+const KW=['if','elif','else','for','in','while','and','or','not','def','return','pass','break','continue','is','lambda','class','import','from','global','try','except','with','as'];
+
+const TOK=/\s*(?:(\d+\.\d*|\.\d+|\d+)|([fF]?)("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([A-Za-z_]\w*)|(==|!=|<=|>=|\/\/|\*\*|[+\-*\/%<>(),\[\]=:.]))/y;
+function unesc(s){return s.replace(/\\(.)/g,(m,c)=>({n:'\n',t:'\t','\\':'\\',"'":"'",'"':'"'})[c]??m)}
+function tokenize(s,line){const out=[];let i=0;
+  while(i<s.length){
+    if(/^\s*$/.test(s.slice(i)))break;
+    TOK.lastIndex=i;const m=TOK.exec(s);
+    if(!m){const j=i+s.slice(i).search(/\S/);const c=s[j];
+      if(c==='"'||c==="'")throw new PyErr('SyntaxError',`this text is missing its closing ${c} quote mark`,line);
+      if('“”‘’'.includes(c))throw new PyErr('SyntaxError','those are curly quotes from a phone keyboard. Use the straight " key from the key bar instead',line);
+      if(c==='{'||c==='}')throw new PyErr('SyntaxError','curly brackets { } only work inside an f-string, like f"{name}"',line);
+      throw new PyErr('SyntaxError',`Python doesn't understand the character ${c}`,line)}
+    i=TOK.lastIndex;
+    if(m[1]!==undefined)out.push({t:'num',v:m[1]});
+    else if(m[3]!==undefined)out.push({t:'str',v:unesc(m[3].slice(1,-1)),f:!!m[2]});
+    else if(m[4]!==undefined)out.push({t:'name',v:m[4]});
+    else out.push({t:'op',v:m[5]});
+  }
+  return out}
+
+const SPEC=/^([<>^]?)(\d*)(,?)(?:\.(\d+))?([fd%]?)$/;
+function commas(s){const neg=s.startsWith('-');if(neg)s=s.slice(1);const [a,b]=s.split('.');return(neg?'-':'')+a.replace(/\B(?=(\d{3})+(?!\d))/g,',')+(b!==undefined?'.'+b:'')}
+function fmtSpec(v,spec,line){const m=SPEC.exec(spec);if(!m)throw new PyErr('ValueError',`Python doesn't know the format :${spec}. For money, use :.2f`,line);
+  const[,al,w,comma,prec,type]=m;let s;
+  if(type==='f'||type==='%'||prec!==undefined){if(!isNum(v))throw new PyErr('TypeError',`:${spec} only works on numbers, but this is ${ka(v)}`,line);let x=nv(v);if(type==='%')x*=100;s=x.toFixed(prec!==undefined?+prec:6);if(comma)s=commas(s);if(type==='%')s+='%'}
+  else if(type==='d'){if(typeof v!=='number')throw new PyErr('TypeError',`:d only works on whole numbers, but this is ${ka(v)}`,line);s=String(v);if(comma)s=commas(s)}
+  else{s=pstr(v);if(comma&&isNum(v))s=commas(s)}
+  const width=+w||0;if(s.length<width){const pad=width-s.length,a=al||(isNum(v)?'>':'<');s=a==='>'?' '.repeat(pad)+s:a==='^'?' '.repeat(pad>>1)+s+' '.repeat(pad-(pad>>1)):s+' '.repeat(pad)}
+  return s}
+function fparts(s,line){const parts=[];let buf='',i=0;
+  while(i<s.length){const c=s[i];
+    if(c==='{'){if(s[i+1]==='{'){buf+='{';i+=2;continue}
+      const j=s.indexOf('}',i);if(j<0)throw new PyErr('SyntaxError','this f-string has a { without a matching }',line);
+      let inner=s.slice(i+1,j).trim(),spec=null;if(!inner)throw new PyErr('SyntaxError','empty { } in an f-string. Put a variable name inside',line);
+      const k=inner.lastIndexOf(':');if(k>0&&SPEC.test(inner.slice(k+1).trim())){spec=inner.slice(k+1).trim();inner=inner.slice(0,k).trim()}
+      if(buf)parts.push(buf);buf='';parts.push({e:parse(tokenize(inner,line),line),spec});i=j+1;continue}
+    if(c==='}'){if(s[i+1]==='}'){buf+='}';i+=2;continue}throw new PyErr('SyntaxError','this f-string has a } without a matching {',line)}
+    buf+=c;i++}
+  if(buf)parts.push(buf);return parts}
+
+function parse(tokens,line){let p=0;
+  const pk=()=>tokens[p];
+  const op=v=>{const t=tokens[p];return!!t&&t.t==='op'&&t.v===v};
+  const kw=v=>{const t=tokens[p];return!!t&&t.t==='name'&&t.v===v};
+  const desc=t=>!t?'the end of the line':t.t==='str'?'some text':`"${t.v}"`;
+  const expect=v=>{if(!op(v))throw new PyErr('SyntaxError',pk()?`expected "${v}" but found ${desc(pk())}`:`missing a closing "${v}"`,line);p++};
+  const CMP=['<','>','<=','>=','==','!='];
+  function expr(){return or_()}
+  function or_(){let l=and_();while(kw('or')){p++;l={k:'or',l,r:and_()}}return l}
+  function and_(){let l=not_();while(kw('and')){p++;l={k:'and',l,r:not_()}}return l}
+  function not_(){if(kw('not')){p++;return{k:'not',e:not_()}}return cmp()}
+  function cmp(){let l=add();for(;;){const t=pk();
+    if(t&&t.t==='op'&&CMP.includes(t.v)){p++;l={k:'cmp',o:t.v,l,r:add()}}
+    else if(kw('in')){p++;l={k:'cmp',o:'in',l,r:add()}}
+    else if(kw('not')&&tokens[p+1]&&tokens[p+1].t==='name'&&tokens[p+1].v==='in'){p+=2;l={k:'not',e:{k:'cmp',o:'in',l,r:add()}}}
+    else break}return l}
+  function add(){let l=mul();while(op('+')||op('-')){const o=tokens[p++].v;l={k:'bin',o,l,r:mul()}}return l}
+  function mul(){let l=un();for(;;){const t=pk();if(t&&t.t==='op'&&['*','/','//','%'].includes(t.v)){p++;l={k:'bin',o:t.v,l,r:un()}}else break}return l}
+  function un(){if(op('-')){p++;return{k:'neg',e:un()}}if(op('+')){p++;return un()}return pow()}
+  function pow(){const b=post();if(op('**')){p++;return{k:'bin',o:'**',l:b,r:un()}}return b}
+  function args(){const a=[],kwa={};if(!op(')')){for(;;){
+      if(pk()&&pk().t==='name'&&tokens[p+1]&&tokens[p+1].t==='op'&&tokens[p+1].v==='='){const n=tokens[p].v;p+=2;kwa[n]=expr()}else a.push(expr());
+      if(op(',')){p++;if(op(')'))break}else break}}
+    expect(')');return{a,kwa}}
+  function post(){let e=prim();for(;;){
+    if(op('(')){p++;const{a,kwa}=args();e={k:'call',f:e,args:a,kw:kwa}}
+    else if(op('[')){p++;const i=expr();if(op(':'))throw new PyErr('SyntaxError','slices like [1:3] aren\'t in the workshop yet',line);expect(']');e={k:'idx',e,i}}
+    else if(op('.')){p++;const t=pk();if(!t||t.t!=='name')throw new PyErr('SyntaxError','a dot needs a name after it, like .upper()',line);p++;
+      if(!op('('))throw new PyErr('SyntaxError',`.${t.v} needs brackets after it, like .${t.v}()`,line);p++;const{a}=args();e={k:'meth',e,m:t.v,args:a}}
+    else break}return e}
+  function prim(){const t=tokens[p];
+    if(!t)throw new PyErr('SyntaxError','the line ends too early. Something is missing',line);
+    if(t.t==='num'){p++;return{k:'lit',v:t.v.includes('.')?new Fl(parseFloat(t.v)):parseInt(t.v,10)}}
+    if(t.t==='str'){p++;return t.f?{k:'f',parts:fparts(t.v,line)}:{k:'lit',v:t.v}}
+    if(t.t==='name'){p++;
+      if(t.v==='True')return{k:'lit',v:true};if(t.v==='False')return{k:'lit',v:false};if(t.v==='None')return{k:'lit',v:null};
+      if(KW.includes(t.v))throw new PyErr('SyntaxError',`"${t.v}" can't go there`,line);
+      return{k:'name',v:t.v}}
+    if(op('(')){p++;const e=expr();expect(')');return e}
+    if(op('[')){p++;const items=[];if(!op(']')){items.push(expr());while(op(',')){p++;if(op(']'))break;items.push(expr())}}expect(']');return{k:'list',items}}
+    if(op('='))throw new PyErr('SyntaxError','a single = stores a value. To compare two things, use ==',line);
+    if(op(':'))throw new PyErr('SyntaxError','unexpected colon. Colons only go at the end of if, else, for, while and def lines',line);
+    throw new PyErr('SyntaxError',`unexpected ${desc(t)}`,line)}
+  const e=expr();
+  if(p<tokens.length){const t=tokens[p];
+    if(t.t==='op'&&t.v==='=')throw new PyErr('SyntaxError','a single = stores a value. To compare two things, use ==',line);
+    if(t.t==='op'&&t.v===',')throw new PyErr('SyntaxError','unexpected comma. If that is a number, write it without commas, like 61880',line);
+    if(t.t==='op'&&t.v===':')throw new PyErr('SyntaxError','unexpected colon. Colons only go at the end of if, else, for, while and def lines',line);
+    if(t.t==='op'&&t.v===')')throw new PyErr('SyntaxError','there is a ) with no ( to match it',line);
+    if(e.k==='name'&&e.v==='print')throw new PyErr('SyntaxError','print needs brackets around what it prints, like print("this")',line);
+    if(t.t==='str'||t.t==='name'||t.t==='num')throw new PyErr('SyntaxError',`unexpected ${desc(t)}. Are you missing a + or a comma?`,line);
+    throw new PyErr('SyntaxError',`unexpected ${desc(t)}`,line)}
+  return e}
+
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function closest(n,names){let best=null,bd=3;for(const k of names){const d=lev(n.toLowerCase(),k.toLowerCase());if(d<bd&&d<Math.max(2,n.length/2)){bd=d;best=k}}return best}
+
+function mk(a,b,v){return isF(a)||isF(b)?new Fl(v):v}
+function bin(o,a,b,line){
+  if(o==='+'){if(isNum(a)&&isNum(b))return mk(a,b,nv(a)+nv(b));if(typeof a==='string'&&typeof b==='string')return a+b;if(Array.isArray(a)&&Array.isArray(b))return a.concat(b);
+    if(typeof a==='string')throw new PyErr('TypeError',`can only join text to text, not to ${ka(b)}. Wrap it in str() or use an f-string`,line);
+    throw new PyErr('TypeError',`can't add ${ka(a)} and ${ka(b)} together`,line)}
+  if(o==='*'){if(typeof a==='string'&&typeof b==='number')return a.repeat(Math.max(0,Math.min(b,2000)));if(typeof b==='string'&&typeof a==='number')return b.repeat(Math.max(0,Math.min(a,2000)))}
+  if(!isNum(a)||!isNum(b)){if(typeof a==='string'||typeof b==='string')throw new PyErr('TypeError',`can't do maths with ${ka(typeof a==='string'?a:b)}. If it holds a number, take the quote marks off`,line);throw new PyErr('TypeError',`can't use ${o} on ${ka(a)} and ${ka(b)}`,line)}
+  const x=nv(a),y=nv(b);
+  if((o==='/'||o==='//'||o==='%')&&y===0)throw new PyErr('ZeroDivisionError','dividing by zero',line);
+  switch(o){case'-':return mk(a,b,x-y);case'*':return mk(a,b,x*y);case'/':return new Fl(x/y);case'//':return mk(a,b,Math.floor(x/y));case'%':return mk(a,b,((x%y)+y)%y);case'**':return mk(a,b,Math.pow(x,y))}
+  throw new PyErr('SyntaxError',`unknown operator ${o}`,line)}
+function eq(a,b){if(isNum(a)&&isNum(b))return nv(a)===nv(b);if(Array.isArray(a)&&Array.isArray(b))return a.length===b.length&&a.every((x,i)=>eq(x,b[i]));return a===b}
+function order(a,b,line,o){if(isNum(a)&&isNum(b))return nv(a)<nv(b)?-1:nv(a)>nv(b)?1:0;if(typeof a==='string'&&typeof b==='string')return a<b?-1:a>b?1:0;
+  throw new PyErr('TypeError',`can't compare ${ka(a)} with ${ka(b)}${o?' using '+o:''}${typeof a==='string'||typeof b==='string'?'. If one holds a number, take the quote marks off':''}`,line)}
+function cmp(o,a,b,line){
+  if(o==='==')return eq(a,b);if(o==='!=')return!eq(a,b);
+  if(o==='in'){if(typeof b==='string'){if(typeof a!=='string')throw new PyErr('TypeError',`can't look for ${ka(a)} inside text`,line);return b.includes(a)}if(Array.isArray(b))return b.some(x=>eq(x,a));throw new PyErr('TypeError',`can't look inside ${ka(b)}`,line)}
+  const c=order(a,b,line,o);switch(o){case'<':return c<0;case'>':return c>0;case'<=':return c<=0;case'>=':return c>=0}}
+
+function write(root,s,line){root.buf+=s;const parts=root.buf.split('\n');root.buf=parts.pop();for(const p of parts)root.out.push(p);
+  if(root.out.length>300)throw new PyErr('RuntimeError','too much printing. Is a loop running more times than you meant?',line)}
+function list1(a,name,line){const xs=a.length===1&&Array.isArray(a[0])?a[0]:a;if(!xs.length)throw new PyErr('ValueError',`${name}() needs at least one value`,line);return xs}
+const B={
+  print:(a,env,line,kw)=>{const sep=has(kw,'sep')?pstr(kw.sep):' ',end=has(kw,'end')?pstr(kw.end):'\n';write(env.root,a.map(pstr).join(sep)+end,line);return null},
+  str:a=>a.length?pstr(a[0]):'',
+  int:(a,env,line)=>{const x=a[0];if(isNum(x))return Math.trunc(nv(x));if(typeof x==='boolean')return x?1:0;if(typeof x==='string'&&/^\s*[-+]?\d+\s*$/.test(x))return parseInt(x,10);throw new PyErr('ValueError',`int() can't turn ${repr(x)} into a whole number`,line)},
+  float:(a,env,line)=>{const x=a[0];if(isNum(x))return new Fl(nv(x));if(typeof x==='string'&&x.trim()!==''&&!isNaN(+x))return new Fl(+x);throw new PyErr('ValueError',`float() can't turn ${repr(x)} into a number`,line)},
+  len:(a,env,line)=>{const x=a[0];if(typeof x==='string'||Array.isArray(x))return x.length;throw new PyErr('TypeError',`${ka(x)} has no length`,line)},
+  round:(a,env,line)=>{if(!isNum(a[0]))throw new PyErr('TypeError',`can't round ${ka(a[0])}`,line);const x=nv(a[0]);if(a.length<2||a[1]===null)return Math.round(x);const d=10**a[1];return new Fl(Math.round(x*d)/d)},
+  abs:(a,env,line)=>{if(!isNum(a[0]))throw new PyErr('TypeError',`abs() needs a number, not ${ka(a[0])}`,line);return isF(a[0])?new Fl(Math.abs(a[0].v)):Math.abs(a[0])},
+  max:(a,env,line)=>list1(a,'max',line).reduce((m,x)=>order(x,m,line)>0?x:m),
+  min:(a,env,line)=>list1(a,'min',line).reduce((m,x)=>order(x,m,line)<0?x:m),
+  sum:(a,env,line)=>{const xs=a[0];if(!Array.isArray(xs))throw new PyErr('TypeError','sum() needs a list of numbers',line);return xs.reduce((s,x)=>bin('+',s,x,line),0)},
+  sorted:(a,env,line)=>{if(!Array.isArray(a[0]))throw new PyErr('TypeError','sorted() needs a list',line);return a[0].slice().sort((x,y)=>order(x,y,line))},
+  range:(a,env,line)=>{for(const x of a)if(typeof x!=='number')throw new PyErr('TypeError',`range() needs whole numbers, not ${ka(x)}`,line);
+    let s=0,e,st=1;if(a.length===1)e=a[0];else{s=a[0];e=a[1];if(a.length>2)st=a[2]}
+    if(e===undefined)throw new PyErr('TypeError','range() needs at least one number',line);
+    if(st===0)throw new PyErr('ValueError','range() step must not be zero',line);
+    const r=[];for(let i=s;st>0?i<e:i>e;i+=st){r.push(i);if(r.length>5000)throw new PyErr('RuntimeError','that range is far too big for this workshop',line)}return r},
+  input:(a,env,line)=>{throw new PyErr('RuntimeError',"input() isn't wired up in the workshop. Les gives you the values instead",line)}
+};
+function needStr(x,m,line){if(typeof x!=='string')throw new PyErr('TypeError',`.${m}() needs text in the brackets, not ${ka(x)}`,line);return x}
+function meth(o,m,a,line){
+  if(typeof o==='string')switch(m){
+    case'upper':return o.toUpperCase();case'lower':return o.toLowerCase();case'strip':return o.trim();
+    case'title':return o.toLowerCase().replace(/(^|[^a-z])([a-z])/g,(x,p,c)=>p+c.toUpperCase());
+    case'capitalize':return o.charAt(0).toUpperCase()+o.slice(1).toLowerCase();
+    case'startswith':return o.startsWith(needStr(a[0],m,line));case'endswith':return o.endsWith(needStr(a[0],m,line));
+    case'replace':return o.split(needStr(a[0],m,line)).join(needStr(a[1],m,line));
+    case'count':return o.split(needStr(a[0],m,line)).length-1;case'find':return o.indexOf(needStr(a[0],m,line));
+    case'split':return a.length?o.split(needStr(a[0],m,line)):o.trim().split(/\s+/).filter(Boolean);
+    case'isdigit':return/^\d+$/.test(o);
+    case'join':if(!Array.isArray(a[0])||!a[0].every(x=>typeof x==='string'))throw new PyErr('TypeError','.join() needs a list of text',line);return a[0].join(o);
+  }
+  if(Array.isArray(o))switch(m){
+    case'append':if(a.length!==1)throw new PyErr('TypeError','.append() adds one thing at a time',line);o.push(a[0]);return null;
+    case'pop':{if(!o.length)throw new PyErr('IndexError',"can't pop from an empty list",line);const i=a.length?a[0]:o.length-1,k=i<0?o.length+i:i;if(k<0||k>=o.length)throw new PyErr('IndexError','that position is past the end of the list',line);return o.splice(k,1)[0]}
+    case'remove':{const k=o.findIndex(x=>eq(x,a[0]));if(k<0)throw new PyErr('ValueError',`${repr(a[0])} isn't in the list`,line);o.splice(k,1);return null}
+    case'insert':o.splice(a[0],0,a[1]);return null;
+    case'count':return o.filter(x=>eq(x,a[0])).length;
+    case'index':{const k=o.findIndex(x=>eq(x,a[0]));if(k<0)throw new PyErr('ValueError',`${repr(a[0])} isn't in the list`,line);return k}
+    case'sort':o.sort((x,y)=>order(x,y,line));return null;case'reverse':o.reverse();return null;case'clear':o.length=0;return null;
+  }
+  let msg=`${ka(o)} has no .${m}() tool`;if(Array.isArray(o)&&m==='add')msg+='. Lists use .append()';if(typeof o==='string'&&['append','push'].includes(m))msg+='. Text can\'t be added to like a list. Use + or an f-string';
+  throw new PyErr('AttributeError',msg,line)}
+
+function lookup(env,n){for(let e=env;e;e=e.parent)if(has(e.vars,n))return{ok:true,v:e.vars[n]};return{ok:false}}
+function allNames(env){const s=[];for(let e=env;e;e=e.parent)s.push(...Object.keys(e.vars));return s}
+function callFn(f,a,env,line,kw){if(Object.keys(kw||{}).length)throw new PyErr('TypeError',`${f.name}() doesn't take name= values in the workshop`,line);
+  if(a.length!==f.params.length)throw new PyErr('TypeError',`${f.name}() needs ${f.params.length} value${f.params.length===1?'':'s'} in the brackets but got ${a.length}`,line);
+  const root=env.root;if(++root.depth>60)throw new PyErr('RecursionError',`${f.name}() keeps calling itself and never stops`,line);
+  const local={vars:{},parent:f.scope,root};f.params.forEach((p,i)=>local.vars[p]=a[i]);
+  try{exec(f.body,local)}catch(e){root.depth--;if(e instanceof Ret)return e.v;throw e}
+  root.depth--;return null}
+function ev(n,env,line){switch(n.k){
+  case'lit':return n.v;
+  case'name':{const r=lookup(env,n.v);if(r.ok)return r.v;if(has(B,n.v))return B[n.v];
+    let msg=`name '${n.v}' is not defined`;const low=n.v.toLowerCase();
+    if(has(B,low)&&low!==n.v)msg+=`. Python cares about capitals, so use ${low}`;
+    else{const near=closest(n.v,allNames(env));if(near)msg+=`. Did you mean ${near}?`;else msg+='. If it\'s meant to be text, put it in quote marks. If it\'s a variable, it needs a value first'}
+    throw new PyErr('NameError',msg,line)}
+  case'f':return n.parts.map(x=>typeof x==='string'?x:(x.spec?fmtSpec(ev(x.e,env,line),x.spec,line):pstr(ev(x.e,env,line)))).join('');
+  case'list':return n.items.map(x=>ev(x,env,line));
+  case'and':{const a=ev(n.l,env,line);return truthy(a)?ev(n.r,env,line):a}
+  case'or':{const a=ev(n.l,env,line);return truthy(a)?a:ev(n.r,env,line)}
+  case'not':return!truthy(ev(n.e,env,line));
+  case'neg':{const a=ev(n.e,env,line);if(!isNum(a))throw new PyErr('TypeError',`can't make ${ka(a)} negative`,line);return isF(a)?new Fl(-a.v):-a}
+  case'bin':return bin(n.o,ev(n.l,env,line),ev(n.r,env,line),line);
+  case'cmp':return cmp(n.o,ev(n.l,env,line),ev(n.r,env,line),line);
+  case'call':{const f=ev(n.f,env,line);const a=n.args.map(x=>ev(x,env,line));const kw={};for(const k in n.kw)kw[k]=ev(n.kw[k],env,line);
+    if(isFn(f))return callFn(f,a,env,line,kw);if(typeof f==='function')return f(a,env,line,kw);
+    throw new PyErr('TypeError',`${ka(f)} can't be used like a function`,line)}
+  case'meth':return meth(ev(n.e,env,line),n.m,n.args.map(x=>ev(x,env,line)),line);
+  case'idx':{const c=ev(n.e,env,line),i=ev(n.i,env,line);if(typeof c!=='string'&&!Array.isArray(c))throw new PyErr('TypeError',`can't use [ ] on ${ka(c)}`,line);if(typeof i!=='number')throw new PyErr('TypeError','positions in [ ] must be whole numbers',line);const k=i<0?c.length+i:i;if(k<0||k>=c.length)throw new PyErr('IndexError',`position ${i} is past the end. Remember the first item is [0]`,line);return c[k]}
+}}
+
+function stripComment(s){let q=null;for(let i=0;i<s.length;i++){const c=s[i];if(q){if(c==='\\'){i++;continue}if(c===q)q=null}else if(c==='"'||c==="'")q=c;else if(c==='#')return s.slice(0,i)}return s}
+function splitLines(src){return String(src).replace(/\r/g,'').replace(/\t/g,'    ').replace(/ /g,' ').split('\n').map((raw,i)=>{const t=stripComment(raw).replace(/\s+$/,'');return{ln:i+1,ind:t.length-t.trimStart().length,text:t.trim()}}).filter(l=>l.text)}
+
+function compile(src){const L=splitLines(src);let i=0,fnDepth=0,loopDepth=0;
+  const P=(s,ln)=>parse(tokenize(s,ln),ln);
+  function block(ind){const out=[];while(i<L.length){const l=L[i];if(l.ind<ind)break;if(l.ind>ind)throw new PyErr('IndentationError','this line is pushed in, but nothing above it opens a block. Remove the spaces at the start',l.ln);out.push(stmt(ind))}return out}
+  function body(l,what){i++;if(i>=L.length||L[i].ind<=l.ind)throw new PyErr('IndentationError',`the line after ${what} on line ${l.ln} needs pushing in with 4 spaces`,L[i]?L[i].ln:l.ln);return block(L[i].ind)}
+  function head(l,k){if(!l.text.endsWith(':'))throw new PyErr('SyntaxError',`the ${k} line needs a colon (:) at the end`,l.ln);return l.text.slice(k.length,-1).trim()}
+  function loopBody(l,w){loopDepth++;try{return body(l,w)}finally{loopDepth--}}
+  function stmt(ind){const l=L[i],t=l.text;let m;
+    if(/^if\b/.test(t)){const c=head(l,'if');if(!c)throw new PyErr('SyntaxError','if needs something to check',l.ln);
+      const branches=[{c:P(c,l.ln),ln:l.ln,b:body(l,'if')}];let els=null;
+      while(i<L.length&&L[i].ind===ind){const n=L[i];
+        if(/^elif\b/.test(n.text)){const c2=head(n,'elif');if(!c2)throw new PyErr('SyntaxError','elif needs something to check',n.ln);branches.push({c:P(c2,n.ln),ln:n.ln,b:body(n,'elif')})}
+        else if(/^else\b/.test(n.text)){if(!/^else\s*:$/.test(n.text))throw new PyErr('SyntaxError',n.text.endsWith(':')?"else doesn't take a condition. Use elif for that":'the else line needs a colon (:) at the end',n.ln);els=body(n,'else');break}
+        else break}
+      return{k:'if',branches,els,ln:l.ln}}
+    if(/^(elif|else)\b/.test(t))throw new PyErr('SyntaxError',`${t.match(/^\w+/)[0]} needs an if above it, lined up at the same indent`,l.ln);
+    if(/^for\b/.test(t)){const h=head(l,'for');m=/^([A-Za-z_]\w*)\s+in\s+(.+)$/.exec(h);if(!m)throw new PyErr('SyntaxError','a for line looks like this: for wheel in range(4):',l.ln);const it=P(m[2],l.ln);return{k:'for',v:m[1],it,ln:l.ln,b:loopBody(l,'for')}}
+    if(/^while\b/.test(t)){const c=head(l,'while');if(!c)throw new PyErr('SyntaxError','while needs something to check',l.ln);const cc=P(c,l.ln);return{k:'while',c:cc,ln:l.ln,b:loopBody(l,'while')}}
+    if(/^def\b/.test(t)){if(!t.endsWith(':'))throw new PyErr('SyntaxError','the def line needs a colon (:) at the end',l.ln);
+      m=/^def\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*:$/.exec(t);if(!m)throw new PyErr('SyntaxError','a def line looks like this: def service(reg):',l.ln);
+      const params=m[2].split(',').map(s=>s.trim()).filter(Boolean);for(const p of params)if(!/^[A-Za-z_]\w*$/.test(p))throw new PyErr('SyntaxError',`"${p}" can't be a slot name in a def`,l.ln);
+      fnDepth++;const saved=loopDepth;loopDepth=0;let b;try{b=body(l,'def')}finally{fnDepth--;loopDepth=saved}return{k:'def',name:m[1],params,b,ln:l.ln}}
+    if(/^return\b/.test(t)){if(!fnDepth)throw new PyErr('SyntaxError','return only works inside a def',l.ln);i++;const e=t.slice(6).trim();return{k:'ret',e:e?P(e,l.ln):null,ln:l.ln}}
+    if(t==='break'||t==='continue'){if(!loopDepth)throw new PyErr('SyntaxError',`${t} only works inside a loop`,l.ln);i++;return{k:t,ln:l.ln}}
+    if(t==='pass'){i++;return{k:'pass',ln:l.ln}}
+    m=/^([A-Za-z_]\w*)\s*\[(.+?)\]\s*=(?!=)\s*(.+)$/.exec(t);
+    if(m){i++;return{k:'setidx',v:m[1],i:P(m[2],l.ln),e:P(m[3],l.ln),ln:l.ln}}
+    m=/^([A-Za-z_]\w*)\s*(\+=|-=|\*=|\/=|=)(?!=)\s*(.*)$/.exec(t);
+    if(m){i++;if(!m[3])throw new PyErr('SyntaxError',`nothing after the ${m[2]}. Put a value there, like ${m[1]} = 5`,l.ln);if(KW.includes(m[1])||['True','False','None'].includes(m[1]))throw new PyErr('SyntaxError',`${m[1]} is a Python keyword, so it can't be a variable name`,l.ln);return{k:'set',v:m[1],o:m[2],e:P(m[3],l.ln),ln:l.ln}}
+    if(/^[A-Za-z_]\w*\s+[A-Za-z_]\w*\s*=(?!=)/.test(t))throw new PyErr('SyntaxError','variable names can\'t have spaces. Use an underscore, like parts_cost',l.ln);
+    i++;return{k:'expr',e:P(t,l.ln),ln:l.ln}}
+  return block(0)}
+
+function exec(ss,env){const root=env.root;for(const s of ss){if(++root.steps>30000)throw new PyErr('RuntimeError','the code ran far too long. Is a loop never finishing?',s.ln);switch(s.k){
+  case'pass':break;
+  case'expr':ev(s.e,env,s.ln);break;
+  case'set':{const v=ev(s.e,env,s.ln);if(s.o==='=')env.vars[s.v]=v;else{const r=lookup(env,s.v);if(!r.ok)throw new PyErr('NameError',`${s.v} has no value yet, so you can't change it with ${s.o}`,s.ln);env.vars[s.v]=bin(s.o[0],r.v,v,s.ln)}break}
+  case'setidx':{const r=lookup(env,s.v);if(!r.ok)throw new PyErr('NameError',`name '${s.v}' is not defined`,s.ln);const c=r.v;
+    if(typeof c==='string')throw new PyErr('TypeError',"text can't be changed one letter at a time. Build a new string instead",s.ln);
+    if(!Array.isArray(c))throw new PyErr('TypeError',`can't use [ ] on ${ka(c)}`,s.ln);const i=ev(s.i,env,s.ln);if(typeof i!=='number')throw new PyErr('TypeError','positions in [ ] must be whole numbers',s.ln);
+    const k=i<0?c.length+i:i;if(k<0||k>=c.length)throw new PyErr('IndexError',`position ${i} is past the end of the list`,s.ln);c[k]=ev(s.e,env,s.ln);break}
+  case'if':{let hit=false;for(const br of s.branches){if(truthy(ev(br.c,env,br.ln))){exec(br.b,env);hit=true;break}}if(!hit&&s.els)exec(s.els,env);break}
+  case'for':{const it=ev(s.it,env,s.ln);let seq;if(Array.isArray(it))seq=it.slice();else if(typeof it==='string')seq=[...it];
+    else throw new PyErr('TypeError',`can't loop over ${ka(it)}. To repeat something a number of times, use range(${typeof it==='number'?it:'4'})`,s.ln);
+    for(const x of seq){env.vars[s.v]=x;try{exec(s.b,env)}catch(e){if(e===BRK)break;if(e===CONT)continue;throw e}}break}
+  case'while':{while(truthy(ev(s.c,env,s.ln))){if(++root.steps>30000)throw new PyErr('RuntimeError','this while loop never stops. Something inside it needs to change so the check becomes False',s.ln);try{exec(s.b,env)}catch(e){if(e===BRK)break;if(e===CONT)continue;throw e}}break}
+  case'def':env.vars[s.name]=new Fn(s.name,s.params,s.b,env);break;
+  case'ret':throw new Ret(s.e?ev(s.e,env,s.ln):null);
+  case'break':throw BRK;case'continue':throw CONT;
+}}}
+
+function run(prog,vars,after){const root={out:[],buf:'',steps:0,depth:0};const env={vars:{},parent:null,root};let error=null;
+  for(const k in vars||{})env.vars[k]=clone(vars[k]);
+  try{exec(prog,env);if(after){try{exec(after,env)}catch(e){if(e instanceof PyErr)e.hidden=true;throw e}}}
+  catch(e){if(e instanceof PyErr)error=e;else if(e instanceof RangeError)error=new PyErr('RecursionError','functions are calling each other forever',0);else throw e}
+  if(root.buf){root.out.push(root.buf);root.buf=''}
+  return{vars:env.vars,out:root.out,error}}
+function setupVars(src){const r=run(compile(src),{});if(r.error)throw r.error;return r.vars}
+
+return{compile,run,setupVars,PyErr,Fl,pstr,repr,nv,isNum,isF,isFn,splitLines};
+})();
+if(typeof module!=='undefined')module.exports=Py;
+</script>
+
+<script id="levels">
+/* The jobs. Expected readouts are worked out by running each job's own solution,
+   so the answer key can never drift from the brief. */
+const GC=(()=>{
+const LEVELS=[
+{id:'j1',no:'0412',title:'Oil change',customer:'Mrs Patel',car:'Citroen C3',reg:'GC21 KRS',miles:'48,213',colour:'#b8402c',
+ manual:{title:'print()',body:'print() writes a line on the readout. Whatever goes inside the brackets gets printed. Text has to be wrapped in quote marks.',example:'print("Morning, Les")'},
+ brief:'First job of the day. Nothing goes up on the ramp without paperwork, so print the header for the job sheet. It has to match exactly.',
+ teaches:['print()','text in quotes'],starter:'# Print the job sheet header\n',
+ solution:'print("Oil change - Citroen C3")',pay:40,par:1,
+ intro:"Morning. Kettle's on, but nothing gets lifted in my bay without a job sheet. Have a look at the manual page, then print the header.",
+ hints:['Copy the manual example, but swap the text for what the job sheet wants.','Spaces and capitals count. Try: print("Oil change - Citroen C3")']},
+
+{id:'j2',no:'0413',title:'Book it in',kind:'plate',customer:'Mr Okafor',car:'Ford Fiesta',reg:'LK19 FXT',miles:'61,880',colour:'#2f5d8f',
+ manual:{title:'Variables and f-strings',body:'A variable is a labelled box: <code>name = "Les"</code>. Text goes in quotes, numbers go in bare. An f-string has an <code>f</code> before the quote, and any box name inside <code>{ }</code> gets swapped for what\'s in the box.',example:'name = "Les"\nmugs = 3\nprint(f"{name} wants {mugs} teas")\n# Les wants 3 teas'},
+ brief:'Book the Fiesta in. Store the reg in a variable called <code>reg</code> and the mileage in one called <code>mileage</code>. Then print a summary line built from those two variables.',
+ teaches:['variables','f-strings'],starter:'# Store the reg and mileage\n\n\n# Print the summary using them\n',
+ solution:'reg = "LK19 FXT"\nmileage = 61880\nprint(f"{reg} - {mileage} miles")',pay:55,par:3,
+ intro:"Fiesta in for a service. Get the details stored properly. The plate up there shows whatever you put in reg, so no typos.",
+ hints:['Two boxes first: reg = "LK19 FXT" (text, so quotes) and mileage = 61880 (a number, so no quotes and no comma).','Then: print(f"{reg} - {mileage} miles")'],
+ require:[[/print\s*\(.*\breg\b[\s\S]*\bmileage\b|print\s*\(.*\bmileage\b.*\breg\b/,"The line's right, but you typed the details out by hand. Put reg and mileage in the f-string so it works for the next car too."]],
+ pre(runs){const v=runs[0].vars;
+   if(!('reg' in v))return"I can't see a variable called reg. It has to be exactly that name, lower case.";
+   if(typeof v.reg!=='string')return'reg should be text, so wrap it in quote marks: reg = "LK19 FXT"';
+   if(v.reg!=='LK19 FXT')return`The plate says "${v.reg}". The car says LK19 FXT. Check the space and capitals.`;
+   if(!('mileage' in v))return"Reg's stored. Now I need a variable called mileage.";
+   if(typeof v.mileage==='string')return"mileage is stored as text because of the quote marks. It's a number, so leave them off.";
+   if(!Py.isNum(v.mileage)||Py.nv(v.mileage)!==61880)return`mileage is ${Py.pstr(v.mileage)} but the clock says 61880.`;
+   const o=runs[0].out[0];if(o&&o.includes('{'))return"Those curly brackets only work in an f-string. Put an f right before the opening quote.";
+   return null}},
+
+{id:'j3',no:'0414',title:'Tyre check',customer:'Hurst Taxis (fleet)',car:'Vauxhall Corsa x3',reg:'YR68 TDW',miles:'various',colour:'#e3dfd3',
+ manual:{title:'if / else',body:'<code>if</code> runs the pushed-in lines only when its check is true. <code>else</code> catches everything that failed. Both lines end with a colon, and the lines under them are pushed in 4 spaces. <code>&gt;=</code> means "more than or equal to".',example:'if fuel >= 10:\n    print("Fine")\nelse:\n    print("Fill up")'},
+ brief:"Three cabs from the same fleet. The tread gauge stores each reading in a variable called <code>tread</code> (in mm). Print <code>PASS</code> if it's at the legal minimum of 1.6 or more, otherwise print <code>FAIL</code>. Your code runs once for each car.",
+ teaches:['if / else','comparisons'],starter:'# The gauge sets tread for you on each car,\n# for example tread = 3.2\n\n',
+ solution:'if tread >= 1.6:\n    print("PASS")\nelse:\n    print("FAIL")',pay:70,par:4,
+ tests:[{setup:'tread = 3.2'},{setup:'tread = 1.1'},{setup:'tread = 1.6'}],
+ cars:[{reg:'YR68 TDW',colour:'#e3dfd3'},{reg:'YR68 TDX',colour:'#3d6a4b'},{reg:'YR68 TDY',colour:'#7d2a37'}],
+ label:v=>`gauge ${Py.pstr(v.tread)} mm`,
+ intro:"Taxi firm's sent three over. Don't eyeball it. Write one check that works on any car the gauge throws at you.",
+ hints:['Start with if tread >= 1.6: and push the next line in 4 spaces.','if tread >= 1.6:\n    print("PASS")\nelse:\n    print("FAIL")'],
+ pre(runs,code,exp,tests){for(let i=0;i<runs.length;i++){const g=runs[i].vars.tread,w=tests[i].vars.tread;if(!Py.isNum(g)||Py.nv(g)!==Py.nv(w))return"You set tread yourself, so your code ignores the gauge. Delete that line and let the gauge fill it in."}
+   const o=runs.map(r=>r.out[0]);if(o[0]==='PASS'&&o[1]==='FAIL'&&o[2]==='FAIL')return"Car 3 is sitting right on 1.6mm. That's the legal limit, so it still passes. Is your check using > when it should be >=?";
+   if(o[0]&&o.every(x=>x===o[0]))return`Every car printed ${o[0]}. The check isn't looking at the tread properly.`;return null}},
+
+{id:'j4',no:'0415',title:'Wheel nuts',kind:'wheels',customer:'Mrs Patel',car:'Citroen C3',reg:'GC21 KRS',miles:'48,213',colour:'#b8402c',
+ manual:{title:'for loops and range()',body:'A <code>for</code> loop repeats its pushed-in lines. <code>range(1, 4)</code> hands out 1, 2 and 3, one at a time. It always stops one before the last number.',example:'for bolt in range(1, 4):\n    print(f"Bolt {bolt} done")'},
+ brief:'Mrs Patel is back for new tyres. Torque all four wheels to 100 Nm and log each one. Use a loop, not four separate print lines.',
+ teaches:['for loops','range()'],starter:'# Torque and log each wheel\n',
+ solution:'for wheel in range(1, 5):\n    print(f"Wheel {wheel}: 100 Nm")',pay:85,par:2,
+ intro:"Same C3 from this morning, new boots on. Four wheels, same job each time. If you write print four times I'm docking your tea.",
+ hints:['for wheel in range(1, 5): counts 1, 2, 3, 4.','Push this in under the for line: print(f"Wheel {wheel}: 100 Nm")'],
+ require:[[/^\s*for\b/m,"Right log, wrong method. That needs a loop. One day it'll be a lorry with ten wheels."]],
+ pre(runs){if(runs[0].out[0]==='Wheel 0: 100 Nm')return"Wheel 0? Cars start at wheel 1. range(4) counts 0, 1, 2, 3. Try range(1, 5).";return null}},
+
+{id:'j5',no:'0416',title:'Parts shelf',customer:'Workshop',car:'Stock room',reg:'STOCK',miles:'—',colour:'#5d6b78',
+ manual:{title:'Lists',body:'A list holds several things inside square brackets. <code>.append()</code> adds one more to the end, <code>len()</code> counts them, and a for loop walks through them one at a time.',example:'tools = ["spanner", "jack"]\ntools.append("torch")\nfor tool in tools:\n    print(tool)\nprint(len(tools))   # 3'},
+ brief:'Stock up the shelf. Make a list called <code>parts</code> holding "oil filter", "air filter" and "brake pads". A delivery just came in, so add "wiper blades" with <code>.append()</code>. Then print each part with a dash in front, and finish with the count.',
+ teaches:['lists','.append()','len()'],starter:'# Make the parts list\n\n',
+ solution:'parts = ["oil filter", "air filter", "brake pads"]\nparts.append("wiper blades")\nfor part in parts:\n    print(f"- {part}")\nprint(f"{len(parts)} parts on the shelf")',pay:95,par:5,
+ intro:"Delivery van's been. Get the shelf sorted before somebody fits a brake pad as an air filter.",
+ hints:['parts = ["oil filter", "air filter", "brake pads"] then parts.append("wiper blades")','for part in parts:\n    print(f"- {part}")\nThen, not pushed in: print(f"{len(parts)} parts on the shelf")'],
+ require:[[/\.append\s*\(/,'Add the wiper blades with parts.append(), not by typing them into the list. That\'s how deliveries work.'],[/^\s*for\b/m,'Walk through the list with a for loop instead of printing each part by hand.']],
+ pre(runs){const p=runs[0].vars.parts;if(p===undefined)return"I can't see a list called parts.";if(!Array.isArray(p))return'parts should be a list, in square brackets: parts = ["oil filter", ...]';return null}},
+
+{id:'j6',no:'0417',title:'Write the bill',customer:'Front desk',car:'Three jobs',reg:'INV 0417',miles:'—',colour:'#7a5c3a',
+ manual:{title:'Maths and money',body:'Python does sums with <code>+ - * /</code>, and brackets go first, like at school. To show money with two decimal places, put <code>:.2f</code> after the name inside the <code>{ }</code>.',example:'price = (9.5 + 0.5) * 2\nprint(f"£{price:.2f}")   # £20.00'},
+ brief:'Bills time. For each job Les gives you <code>hours</code> (labour time) and <code>parts_cost</code>. Labour is £65 an hour. Add the parts, then add 20% VAT by multiplying by 1.2. Print the total with two decimal places.',
+ teaches:['maths','brackets',':.2f'],starter:'# hours and parts_cost are filled in for each job\n\n',
+ solution:'total = (hours * 65 + parts_cost) * 1.2\nprint(f"Total: £{total:.2f}")',pay:110,par:2,
+ tests:[{setup:'hours = 1.5\nparts_cost = 30.0'},{setup:'hours = 2.0\nparts_cost = 84.5'},{setup:'hours = 0.5\nparts_cost = 12.99'}],
+ label:v=>`${Py.pstr(v.hours)} hrs + £${Py.nv(v.parts_cost).toFixed(2)} parts`,
+ intro:"Customers want paying for... no, wait, we want paying. Get the sums right or the accountant has my guts.",
+ hints:['Brackets first: labour plus parts, then times 1.2 for VAT. Store it: total = (hours * 65 + parts_cost) * 1.2','print(f"Total: £{total:.2f}")'],
+ nearMiss(got){if(/^Total: £-?\d+(\.\d)?$/.test(got)||/^Total: £-?\d+\.\d{3,}$/.test(got))return'Money needs exactly two decimal places. Inside the { } add :.2f, like {total:.2f}';return null}},
+
+{id:'j7',no:'0418',title:'Fault codes',customer:'Hurst Taxis (fleet)',car:'Various',reg:'OBD SCAN',miles:'—',colour:'#3f5f6e',
+ manual:{title:'Text tools',body:'Text comes with built-in tools you reach with a dot. <code>.upper()</code> makes capitals. <code>.startswith("P03")</code> checks how it begins and gives back True or False.',example:'part = "brake pad"\nprint(part.upper())            # BRAKE PAD\nprint(part.startswith("bra"))  # True'},
+ brief:'The old code reader spits out fault codes in any case. For each car, <code>code</code> holds the code. Save it in capitals, then print whether it\'s a misfire. Every code starting with P030 is a misfire (P0302 means cylinder 2).',
+ teaches:['.upper()','.startswith()'],starter:'# code is filled in by the reader for each car\n\n',
+ solution:'code = code.upper()\nif code.startswith("P030"):\n    print(f"{code}: misfire")\nelse:\n    print(f"{code}: not a misfire")',pay:120,par:5,
+ tests:[{setup:'code = "p0302"'},{setup:'code = "P0420"'},{setup:'code = "p0300"'},{setup:'code = "P0171"'}],
+ label:v=>`reader: ${v.code}`,
+ intro:"Engine lights on in half the taxi fleet. Plug the reader in and tell me which ones are misfiring.",
+ hints:['code = code.upper() turns it to capitals and saves it back in the same box.','if code.startswith("P030"):\n    print(f"{code}: misfire")\nelse:\n    print(f"{code}: not a misfire")'],
+ nearMiss(got){if(/p0/.test(got))return'The code is still in lower case. code = code.upper() fixes that before you print.';return null}},
+
+{id:'j8',no:'0419',title:'Warm-up',customer:'Mr Okafor',car:'Ford Fiesta',reg:'LK19 FXT',miles:'61,880',colour:'#2f5d8f',
+ manual:{title:'while loops',body:'<code>while</code> keeps repeating as long as its check is true. Something inside the loop has to change, or it runs forever.',example:'fuel = 0\nwhile fuel < 30:\n    fuel = fuel + 10\nprint(fuel)   # 30'},
+ brief:'Oil drains better warm. Each engine starts at <code>temp</code> °C and climbs 7 degrees every minute it runs. Count the minutes until it reaches 90, then print the result.',
+ teaches:['while loops','counting'],starter:'# temp is filled in for each car\n\n',
+ solution:'minutes = 0\nwhile temp < 90:\n    temp = temp + 7\n    minutes = minutes + 1\nprint(f"Ready after {minutes} minutes")',pay:120,par:5,
+ tests:[{setup:'temp = 20'},{setup:'temp = 55'},{setup:'temp = 88'},{setup:'temp = 90'}],
+ cars:[{reg:'LK19 FXT',colour:'#2f5d8f'},{reg:'GC21 KRS',colour:'#b8402c'},{reg:'YR68 TDW',colour:'#e3dfd3'},{reg:'MN10 OOP',colour:'#4f7d5c'}],
+ label:v=>`starts at ${Py.pstr(v.temp)}°C`,
+ intro:"Never drain cold oil. Tell me how long each one needs ticking over. And watch the one that's already warm.",
+ hints:['Start a counter: minutes = 0. Then while temp < 90: and push the next lines in.','Inside the loop: temp = temp + 7 and minutes = minutes + 1. After it, not pushed in: print(f"Ready after {minutes} minutes")'],
+ require:[[/^\s*while\b/m,"Do this one with a while loop. You don't know how many minutes it'll take up front, and that's exactly what while is for."]]},
+
+{id:'j9',no:'0420',title:'Your own tools',customer:'Workshop',car:'Any car',reg:'GC21 KRS',miles:'—',colour:'#6b4f86',
+ manual:{title:'Functions',body:'<code>def</code> makes your own tool. The name in the brackets is a slot that gets filled each time you use it. Write it once, use it as often as you like.',example:'def greet(name):\n    print(f"Morning, {name}")\n\ngreet("Les")\ngreet("Mrs Patel")'},
+ brief:'Same service on every car, so make a tool for it. Write a function called <code>service</code> with a slot called <code>reg</code> that prints the line below. Use it on GC21 KRS and LK19 FXT. Les will also try it on a mystery car of his own.',
+ teaches:['def','functions'],starter:'# Write the service tool\n\n',
+ solution:'def service(reg):\n    print(f"{reg}: oil, filter and checks done")\n\nservice("GC21 KRS")\nservice("LK19 FXT")',
+ after:'service("ZZ99 TOP")',hiddenFrom:2,
+ target:'GC21 KRS: oil, filter and checks done\nLK19 FXT: oil, filter and checks done',pay:130,par:4,
+ intro:"Good mechanics make their own tools. Build me a service function and I'll test it on my car. Don't ask what I drive.",
+ hints:['def service(reg): then push in the print line, using {reg} in an f-string.','After the function, not pushed in: service("GC21 KRS") and service("LK19 FXT")'],
+ require:[[/^\s*def\s+service\b/m,'Les wants this built as a function: def service(reg):']],
+ pre(runs){if(!Py.isFn(runs[0].vars.service))return"I can't find a function called service. It starts with def service(reg):";return null}},
+
+{id:'j10',no:'0421',title:'MOT day',boss:true,customer:'Walk-ins',car:'Five cars',reg:'MOT 2026',miles:'—',colour:'#9a3b2f',
+ manual:{title:'return, and, or',body:'<code>return</code> hands an answer back from a function instead of printing it. <code>and</code> needs both sides true, <code>or</code> needs just one. <code>min()</code> finds the smallest number in a list.',example:'def check(speed, wet):\n    if speed > 50 and wet:\n        return "SLOW DOWN"\n    return "OK"\n\nprint(check(60, True))   # SLOW DOWN'},
+ brief:'Boss job. Write a function <code>mot(tyres, lights, brakes)</code> that returns <code>"PASS"</code> or <code>"FAIL"</code>. tyres is a list of four tread depths, lights is True or False, and brakes is brake efficiency in %. A car fails if any tyre is under 1.6, the lights don\'t work, or the brakes are under 50. Les runs it on five cars and prints the answers himself.',
+ teaches:['return','and / or','min()'],starter:'def mot(tyres, lights, brakes):\n    \n',
+ solution:'def mot(tyres, lights, brakes):\n    if min(tyres) < 1.6 or not lights or brakes < 50:\n        return "FAIL"\n    return "PASS"',
+ after:'print(mot(tyres, lights, brakes))',pay:250,par:4,
+ tests:[{setup:'tyres = [3.1, 2.8, 3.0, 2.9]\nlights = True\nbrakes = 72'},{setup:'tyres = [3.1, 1.2, 3.0, 2.9]\nlights = True\nbrakes = 72'},{setup:'tyres = [4.0, 4.0, 4.0, 4.0]\nlights = False\nbrakes = 80'},{setup:'tyres = [2.0, 2.0, 1.6, 2.0]\nlights = True\nbrakes = 50'},{setup:'tyres = [5.0, 5.0, 5.0, 5.0]\nlights = True\nbrakes = 49'}],
+ cars:[{reg:'GC21 KRS',colour:'#b8402c'},{reg:'LK19 FXT',colour:'#2f5d8f'},{reg:'YR68 TDX',colour:'#3d6a4b'},{reg:'MN10 OOP',colour:'#4f7d5c'},{reg:'BX14 VAN',colour:'#e3dfd3'}],
+ label:v=>`low tyre ${Py.pstr(v.tyres.reduce((m,x)=>Py.nv(x)<Py.nv(m)?x:m))} · lights ${v.lights?'on':'out'} · brakes ${Py.pstr(v.brakes)}%`,
+ intro:"MOT day. Five cars, one tester, and that's you. Build the test as a function and I'll put every car through it.",
+ hints:['Three ways to fail: min(tyres) < 1.6, not lights, brakes < 50. Join them with or.','if min(tyres) < 1.6 or not lights or brakes < 50:\n        return "FAIL"\n    return "PASS"'],
+ require:[[/^\s*def\s+mot\b/m,'Build it as a function: def mot(tyres, lights, brakes):'],[/\breturn\b/,'mot() needs to return its answer, not print it.']],
+ pre(runs){if(!Py.isFn(runs[0].vars.mot))return"I can't find a function called mot. It starts with def mot(tyres, lights, brakes):";
+   if(runs.some(r=>r.out.includes('None')))return'Les printed what mot() handed back and got None. Your function needs return "PASS" or return "FAIL", not print.';return null}}
+];
+
+/* custom jobs */
+function splitSemis(line){const out=[];let q=null,cur='';for(let i=0;i<line.length;i++){const c=line[i];if(q){if(c==='\\'){cur+=c+(line[i+1]||'');i++;continue}if(c===q)q=null;cur+=c}else if(c==='"'||c==="'"){q=c;cur+=c}else if(c===';'){out.push(cur);cur=''}else cur+=c}out.push(cur);return out.map(s=>s.trim()).filter(Boolean).join('\n')}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+function customLevel(d,n){const must=(d.must||'').trim();
+  return{id:d.id,custom:true,data:d,no:'C'+String(n+1).padStart(2,'0'),title:d.t,customer:'Your job board',car:d.car||'Customer car',reg:(d.reg||'MY JOB').toUpperCase(),miles:'—',colour:'#5b6b7a',
+    manual:null,brief:esc(d.brief||'Make the readout match.'),teaches:['custom job'],starter:d.start||'# Your code here\n',solution:d.sol,
+    tests:(d.tests||[]).map(s=>({setup:s})),label:null,pay:25,par:0,
+    intro:"One off the custom board. Someone wrote this, so let's see if it's a fair job.",
+    hints:[d.hint||'Compare your readout with what the job sheet wants, line by line.','Read the brief again slowly. The readout has to match exactly, spaces and capitals included.'],
+    require:must?[[new RegExp('(^|\\W)'+must.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\W|$)'),`This job has to use ${must}.`]]:[]}}
+function validateCustom(d){
+  if(!d.t||!d.t.trim())return'Give the job a title.';
+  if(!d.sol||!d.sol.trim())return'Write your own answer so the game knows what the readout should show.';
+  let prog;try{prog=Py.compile(d.sol)}catch(e){return`Your answer has an error on line ${e.line}: ${e.message}.`}
+  const tests=d.tests&&d.tests.length?d.tests:[''];
+  for(let i=0;i<tests.length;i++){let vars={};if(tests[i]){try{vars=Py.setupVars(tests[i])}catch(e){return`Test car ${i+1} doesn't work: ${e.message}.`}}
+    const r=Py.run(prog,vars);if(r.error)return`Your answer breaks${tests.length>1?` on test car ${i+1}`:''}: line ${r.error.line}, ${r.error.message}.`;
+    if(!r.out.length)return`Your answer doesn't print anything${tests.length>1?` for test car ${i+1}`:''}. Players need a readout to match.`}
+  const must=(d.must||'').trim();if(must&&!new RegExp('(^|\\W)'+must.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\W|$)').test(d.sol))return`Your own answer doesn't use ${must}, so players couldn't be marked fairly.`;
+  return null}
+
+function prepare(lv){if(lv._prep)return lv._prep;
+  const tests=(lv.tests&&lv.tests.length?lv.tests:[{}]).map(t=>({...t,vars:t.setup?Py.setupVars(t.setup):{}}));
+  const after=lv.after?Py.compile(lv.after):null,sol=Py.compile(lv.solution);
+  const expected=tests.map(t=>{const r=Py.run(sol,t.vars,after);if(r.error)throw new Error(`${lv.id} solution failed: ${r.error.message}`);return r.out});
+  return lv._prep={tests,after,expected}}
+function runAll(lv,prog){const P=prepare(lv);return P.tests.map(t=>Py.run(prog,t.vars,P.after))}
+const strip=c=>Py.splitLines(c).map(l=>' '.repeat(l.ind)+l.text).join('\n');
+function check(lv,runs,code){const P=prepare(lv),clean=strip(code),fleet=runs.length>1;
+  if(lv.pre){const m=lv.pre(runs,clean,P.expected,P.tests);if(m)return{ok:false,msg:m}}
+  for(let i=0;i<runs.length;i++){const got=runs[i].out,want=P.expected[i],who=fleet?`Car ${i+1}: `:'';
+    for(let k=0;k<Math.max(got.length,want.length);k++){
+      if(lv.hiddenFrom!==undefined&&k>=lv.hiddenFrom&&got[k]!==want[k])return{ok:false,msg:`Les tested it on his own car and got "${got[k]??'nothing'}" instead of "${want[k]}". Make the function use its slot, not a typed-out value.`};
+      if(got[k]===undefined)return{ok:false,msg:`${who}${k===0?'nothing printed':`the readout stops after ${k} line${k===1?'':'s'}`}. Next it should show "${want[k]}".`};
+      if(want[k]===undefined)return{ok:false,msg:`${who}there's an extra line, "${got[k]}". The job doesn't ask for that.`};
+      if(got[k]!==want[k]){const nm=lv.nearMiss&&lv.nearMiss(got[k],want[k]);if(nm)return{ok:false,msg:who+nm};
+        let tip='';if(got[k].toLowerCase()===want[k].toLowerCase())tip=' Capitals matter.';else if(got[k].replace(/\s+/g,'')===want[k].replace(/\s+/g,''))tip=' Look closely at the spaces.';
+        return{ok:false,msg:`${who}line ${k+1} reads "${got[k]}" but it should read "${want[k]}".${tip}`}}}}
+  for(const[re,msg]of lv.require||[])if(!re.test(clean))return{ok:false,msg};
+  return{ok:true}}
+return{LEVELS,customLevel,validateCustom,splitSemis,prepare,runAll,check};
+})();
+if(typeof module!=='undefined')module.exports.GC=GC;
+</script>
+
+<script>
+(()=>{
+if(typeof document==='undefined')return;
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+const codeLines=c=>Py.splitLines(c).length;
+const PALETTE=['#5b7a99','#a0522d','#4f7d5c','#8a6d3b','#6b4f86'];
+const RANKS=[[0,'Apprentice'],[150,'Junior mechanic'],[400,'Mechanic'],[700,'Senior mechanic'],[1000,'Master technician'],[1200,'Garage owner']];
+const LES={
+  ok:["Not bad. Up she goes.","Tidy. I've seen apprentices take a week over that.","That'll do. Customer's happy, I'm happy.","Clean job. Don't let it go to your head.","Lovely. Have a biscuit. One biscuit.","Right first time? Who taught you? Oh. Me."],
+  err:{SyntaxError:"That's not Python, that's a shopping list.",NameError:"You're asking for something that isn't on the shelf.",TypeError:"Wrong tool for the job. You're mixing up types.",IndentationError:"Your spacing's off. Python's fussy about lining things up.",ZeroDivisionError:"Dividing by zero? In my workshop?",ValueError:"That value won't fit.",RuntimeError:"Engine's running away with itself.",IndexError:"Reaching past the end of the shelf.",AttributeError:"That tool doesn't exist.",RecursionError:"It's going round in circles."},
+  fail:"It ran, but the result's wrong.",
+  broke:"You're skint, so this one's on the house. Don't tell anyone.",
+  streak:["Three in a row. Steady on.","You're on a roll. Don't get cocky."]
+};
+
+let state={cur:'j1',unlocked:0,cash:0,done:[],code:{},hints:{},custom:[],sound:true,streak:0};
+try{const s=JSON.parse(localStorage.getItem('garage-code-v2')||'null');if(s&&typeof s==='object')state=Object.assign(state,s)}catch(e){}
+const save=()=>{try{localStorage.setItem('garage-code-v2',JSON.stringify(state))}catch(e){}};
+
+const codeEl=$('code'),gutter=$('gutter'),out=$('out'),bay=$('bay'),runBtn=$('runBtn');
+let busy=false,errLine=0,customCache=new Map();
+const all=()=>GC.LEVELS.concat(state.custom.map((d,i)=>{const key=d.id+JSON.stringify(d)+i;if(!customCache.has(key))customCache.set(key,GC.customLevel(d,i));return customCache.get(key)}));
+const cur=()=>all().find(l=>l.id===state.cur)||GC.LEVELS[0];
+const mainIdx=id=>GC.LEVELS.findIndex(l=>l.id===id);
+
+/* sound */
+let ac=null,noiseBuf=null;
+function sfx(kind){if(!state.sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const t=ac.currentTime;
+  const tone=(f,st,d,type='sine',g=.12,f2)=>{const o=ac.createOscillator(),v=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t+st);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+st+d);v.gain.setValueAtTime(g,t+st);v.gain.exponentialRampToValueAtTime(.0001,t+st+d);o.connect(v).connect(ac.destination);o.start(t+st);o.stop(t+st+d+.02)};
+  if(!noiseBuf){noiseBuf=ac.createBuffer(1,ac.sampleRate*.05,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+  const burst=(st,g=.18)=>{const s=ac.createBufferSource(),v=ac.createGain(),f=ac.createBiquadFilter();s.buffer=noiseBuf;f.type='bandpass';f.frequency.value=1800;v.gain.setValueAtTime(g,t+st);v.gain.exponentialRampToValueAtTime(.0001,t+st+.045);s.connect(f).connect(v).connect(ac.destination);s.start(t+st)};
+  if(kind==='ok'){for(let i=0;i<7;i++)burst(i*.045);tone(880,.38,.25);tone(1320,.5,.35)}
+  else if(kind==='err'){tone(160,0,.35,'square',.06,70)}
+  else if(kind==='fail'){tone(440,0,.12,'triangle',.1);tone(330,.13,.2,'triangle',.1)}
+  else if(kind==='cash'){tone(1568,0,.08,'square',.05);tone(2093,.08,.18,'square',.05)}
+}catch(e){}}
+
+/* wheel nuts */
+function makeNuts(id,cx){let h='';for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5;h+=`<circle class="nut" cx="${(cx+7*Math.cos(a)).toFixed(1)}" cy="${(124+7*Math.sin(a)).toFixed(1)}" r="2.2"/>`}$(id).innerHTML=h}
+makeNuts('nutsR',110);makeNuts('nutsF',262);
+const nuts=()=>[...document.querySelectorAll('.nut')];
+
+function les(t){$('les').textContent=t}
+function rank(){let r=RANKS[0][1];for(const[c,n]of RANKS)if(state.cash>=c)r=n;return r}
+function setCash(bump){$('cash').textContent='£'+state.cash;$('rank').textContent=rank();if(bump){const c=$('cash');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
+function setCar(colour,reg){$('body').setAttribute('fill',colour);$('plate').textContent=reg}
+function fx(cls,ms){bay.classList.remove(cls);void bay.offsetWidth;bay.classList.add(cls);setTimeout(()=>bay.classList.remove(cls),ms)}
+function carFor(lv,i){const c=lv.cars&&lv.cars[i];return{colour:c?c.colour:(lv.custom||(lv.tests&&lv.tests.length>1)?PALETTE[i%PALETTE.length]:lv.colour),reg:c?c.reg:lv.reg}}
+function labelFor(lv,t){if(lv.label)return lv.label(t.vars);return t.setup?t.setup.split('\n').join('; '):''}
+
+function renderJobs(){const box=$('jobs');box.innerHTML='';
+  all().forEach(lv=>{const b=document.createElement('button');b.type='button';b.className='chip'+(state.done.includes(lv.id)?' done':'')+(lv.custom?' custom':'');
+    b.innerHTML=`<span class="n">${lv.no}</span><span class="t"></span>`;b.querySelector('.t').textContent=lv.title;
+    const mi=mainIdx(lv.id);b.disabled=mi>state.unlocked;if(b.disabled)b.title='Finish the jobs before this one first';
+    b.setAttribute('aria-current',lv.id===state.cur&&$('builder').hidden?'true':'false');
+    b.onclick=()=>{if(busy)return;state.cur=lv.id;save();$('builder').hidden=true;load()};box.appendChild(b)});
+  const m=document.createElement('button');m.type='button';m.className='chip make';m.textContent='+ Make a job';m.onclick=()=>openBuilder();box.appendChild(m);
+  const a=box.querySelector('[aria-current="true"]');if(a)a.scrollIntoView({block:'nearest',inline:'nearest'})}
+
+function renderHud(lv,res){const hud=$('hud'),P=GC.prepare(lv);
+  if(lv.kind==='wheels'){hud.hidden=false;const names=['Front left','Front right','Rear left','Rear right'];hud.innerHTML=names.map((n,i)=>`<div class="badge ${res&&res[i]?'lit':''}"><span>${n}</span><b>${res&&res[i]?esc(res[i]):'loose'}</b></div>`).join('')}
+  else if(P.tests.length>1){hud.hidden=false;hud.innerHTML=P.tests.map((t,i)=>{const r=res&&res[i];const cls=r?(r.right?'right':'wrong'):'';
+      return`<div class="badge ${cls}"><span>Car ${i+1} · ${esc(labelFor(lv,t))}</span><b>${r?esc(r.text):'?'}</b></div>`}).join('')}
+  else{hud.hidden=true;hud.innerHTML=''}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+
+function load(){const lv=cur(),P=GC.prepare(lv);
+  bay.classList.remove('lifted');nuts().forEach(n=>n.classList.remove('lit'));
+  const c=carFor(lv,0);setCar(P.tests.length>1?c.colour:lv.colour,P.tests.length>1?c.reg:lv.reg);
+  $('jobno').textContent=lv.no;$('fCust').textContent=lv.customer;$('fCar').textContent=lv.car;$('fReg').textContent=lv.reg;$('fMiles').textContent=lv.miles;
+  $('jobTitle').innerHTML=esc(lv.title)+(lv.boss?'<span class="boss">BOSS JOB</span>':'');
+  if(lv.manual){$('manual').hidden=false;$('manTitle').textContent=lv.manual.title;$('manBody').innerHTML=lv.manual.body;$('manEx').textContent=lv.manual.example}else $('manual').hidden=true;
+  $('brief').innerHTML=lv.brief+(P.tests.length>1?` <b>${P.tests.length} cars.</b>`:'');
+  const tgt=lv.target??P.expected[0].join('\n');$('target').textContent=tgt;
+  $('targetLabel').textContent=P.tests.length>1?"Car 1's readout should show":'Readout should show';
+  $('teaches').innerHTML=lv.teaches.map(t=>`<span>${esc(t)}</span>`).join('');
+  $('mine').hidden=!lv.custom;$('shareBox').hidden=true;resetDel();
+  codeEl.value=state.code[lv.id]??lv.starter;errLine=0;sync();
+  out.innerHTML='<span class="dim">Press Run job to test your code'+(P.tests.length>1?` on all ${P.tests.length} cars`:' on the car')+'. Ctrl+Enter works too.</span>';$('runs').textContent='';
+  $('paid').hidden=true;les(lv.intro);renderHud(lv);renderJobs();setCash();
+  $('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free'}
+
+/* editor */
+function sync(){const n=codeEl.value.split('\n').length;let h='';for(let i=1;i<=n;i++)h+=i===errLine?`<span class="e">${i}</span>\n`:i+'\n';gutter.innerHTML=h;gutter.scrollTop=codeEl.scrollTop}
+let saveT;
+codeEl.addEventListener('input',()=>{errLine=0;sync();clearTimeout(saveT);saveT=setTimeout(()=>{state.code[state.cur]=codeEl.value;save()},300)});
+codeEl.addEventListener('scroll',()=>{gutter.scrollTop=codeEl.scrollTop});
+function insertInto(el,txt,back){const s=el.selectionStart,e=el.selectionEnd;el.setRangeText(txt,s,e,'end');if(back){const p=el.selectionEnd-back;el.setSelectionRange(p,p)}el.focus({preventScroll:true});el.dispatchEvent(new Event('input'))}
+function codeKeys(el,runOnCtrlEnter){el.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){if(runOnCtrlEnter){e.preventDefault();runJob()}return}
+  if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();insertInto(el,'    ')}
+  else if(e.key==='Enter'&&!e.isComposing){const s=el.selectionStart;const before=el.value.slice(0,s);const line=before.slice(before.lastIndexOf('\n')+1);
+    let ind=line.match(/^ */)[0];if(/:\s*$/.test(line.replace(/#.*/,'')))ind+='    ';e.preventDefault();insertInto(el,'\n'+ind)}})}
+codeKeys(codeEl,true);['bSol','bStart'].forEach(id=>codeKeys($(id),false));
+const KEYS=[['⇥','    ',0,'Indent'],['( )','()',1],['" "','""',1],[':',':',0],['=','=',0],['<','<',0],['>','>',0],['[ ]','[]',1],['{ }','{}',1],['.','.',0],['f" "','f""',1],['print','print()',1],['if','if :',1],['else','else:',0],['for','for  in range():',12],['while','while :',1],['def','def ():',3],['return','return ',0],['#','# ',0]];
+let lastFocus=codeEl;['code','bSol','bStart'].forEach(id=>$(id).addEventListener('focus',e=>{lastFocus=e.target}));
+KEYS.forEach(([lab,txt,back,aria])=>{const b=document.createElement('button');b.type='button';b.className='key';b.textContent=lab;if(aria)b.setAttribute('aria-label',aria);
+  b.addEventListener('pointerdown',e=>e.preventDefault());b.addEventListener('click',()=>insertInto(codeEl,txt,back));$('keys').appendChild(b)});
+
+/* readout */
+async function line(t,cls,ms=170){const s=document.createElement('span');if(cls)s.className=cls;s.textContent=t+'\n';out.appendChild(s);await sleep(ms)}
+async function showError(e){errLine=e.hidden?0:(e.line||0);sync();
+  if(e.hidden)await line("Les's test call broke your code:",'err',60);
+  else await line(`${e.line?'Line '+e.line+' · ':''}${e.type}`,'err',60);
+  await line(e.message,'err',0);
+  fx('smoking',1700);sfx('err');state.streak=0;les((LES.err[e.type]||"Something's seized up.")+(e.line&&!e.hidden?` Check line ${e.line}.`:''))}
+
+async function runJob(){if(busy)return;busy=true;runBtn.disabled=true;
+  const lv=cur(),code=codeEl.value;state.code[lv.id]=code;save();
+  out.innerHTML='';errLine=0;sync();$('paid').hidden=true;bay.classList.remove('lifted');nuts().forEach(n=>n.classList.remove('lit'));renderHud(lv);
+  les("Right, let's see what you've got...");
+  let prog;try{prog=Py.compile(code)}catch(e){if(!(e instanceof Py.PyErr))throw e;await showError(e);return finish()}
+  const P=GC.prepare(lv),runs=GC.runAll(lv,prog),fleet=P.tests.length>1;
+  $('runs').textContent=fleet?`${P.tests.length} cars`:'';
+  const res=[],wheels=[];
+  for(let i=0;i<runs.length;i++){const r=runs[i];
+    if(fleet){const c=carFor(lv,i);setCar(c.colour,c.reg);fx('roll',600);await line(`Car ${i+1} · ${c.reg} · ${labelFor(lv,P.tests[i])}`,'dim',260)}
+    else if(lv.kind==='plate'){setCar(lv.colour,typeof r.vars.reg==='string'?(r.vars.reg.slice(0,10)||' '):lv.reg)}
+    else setCar(lv.colour,lv.reg);
+    for(let j=0;j<r.out.length;j++){await line(r.out[j],'');
+      if(lv.kind==='wheels'&&j<4){wheels[j]=r.out[j].replace(/^.*?:\s*/,'')||'done';const ns=nuts();(j<2?ns.slice(5):ns.slice(0,5)).forEach(n=>n.classList.add('lit'));renderHud(lv,wheels)}}
+    if(r.error){if(r.error.hidden&&lv.pre){const m=lv.pre(runs,code,P.expected,P.tests);if(m){await line('✗ Job not signed off','err',0);fx('shake',500);sfx('fail');state.streak=0;save();les(LES.fail+' '+m);return finish()}}
+      await showError(r.error);return finish()}
+    if(fleet){const want=P.expected[i];res[i]={text:r.out.length?r.out.join(' / '):'no result',right:r.out.length===want.length&&r.out.every((x,k)=>x===want[k])};renderHud(lv,res);await sleep(220)}
+  }
+  if(!runs.some(r=>r.out.length))await line('(nothing printed)','dim');
+  const verdict=GC.check(lv,runs,code);
+  if(!verdict.ok){await line('✗ Job not signed off','err',0);fx('shake',500);sfx('fail');state.streak=0;save();les(LES.fail+' '+verdict.msg);return finish()}
+  await line('✓ Job signed off','ok',0);
+  if(fleet)setCar(lv.colour,lv.reg);
+  bay.classList.add('lifted');setTimeout(()=>fx('flash',1300),500);sfx('ok');
+  const n=codeLines(code),first=!state.done.includes(lv.id);let items=[];state.streak=(state.streak||0)+1;
+  if(first){let earn=lv.pay;items.push(`£${lv.pay} labour`);
+    if(lv.par){if(n<=lv.par){earn+=10;items.push(`£10 tidy-code tip (${n} line${n===1?'':'s'})`)}else items.push(`No tidy-code tip: ${n} lines, Les wanted ${lv.par} or fewer`)}
+    const usedHints=state.hints[lv.id]||0;if(!usedHints&&!lv.custom){earn+=5;items.push('£5 no-hints bonus')}
+    state.cash+=earn;state.done.push(lv.id);const mi=mainIdx(lv.id);if(mi>=0&&state.unlocked<mi+1&&mi+1<GC.LEVELS.length)state.unlocked=mi+1;setTimeout(()=>{setCash(true);sfx('cash')},700)}
+  else items.push("Already paid for this job. Les doesn't pay twice.");
+  save();
+  const quip=state.streak===3?LES.streak[0]:state.streak>=5&&state.streak%5===0?LES.streak[1]:LES.ok[Math.floor(Math.random()*LES.ok.length)];les(quip);
+  const mi=mainIdx(lv.id),nextMain=mi>=0&&mi+1<GC.LEVELS.length?GC.LEVELS[mi+1]:null;
+  const p=$('paid');
+  p.innerHTML=`<h3>Job ${esc(lv.no)} paid</h3><ul>${items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`+
+    (nextMain?`<button class="btn dark" id="nextBtn" type="button">Next job: ${esc(nextMain.title)} →</button>`:
+     mi===GC.LEVELS.length-1?`<p>That's every job on Les's board. You've earned the overalls. Try making your own jobs with + Make a job, or send one to a mate.</p><button class="btn dark" id="makeBtn" type="button">Make a job</button>`:
+     `<button class="btn dark" id="makeBtn" type="button">Make another job</button>`);
+  p.hidden=false;
+  if(nextMain)$('nextBtn').onclick=()=>{state.cur=nextMain.id;save();load();window.scrollTo({top:0,behavior:reduce?'auto':'smooth'})};
+  if($('makeBtn'))$('makeBtn').onclick=()=>openBuilder();
+  renderJobs();finish()}
+function finish(){busy=false;runBtn.disabled=false;$('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free'}
+
+runBtn.onclick=runJob;
+$('resetBtn').onclick=()=>{const lv=cur();codeEl.value=lv.starter;delete state.code[lv.id];save();errLine=0;sync();codeEl.focus()};
+$('hintBtn').onclick=()=>{const lv=cur();const k=state.hints[lv.id]||0;const h=lv.hints[Math.min(k,lv.hints.length-1)];
+  let pre='';if(state.cash>=5){state.cash-=5;setCash()}else pre=LES.broke+'\n';
+  state.hints[lv.id]=k+1;save();les(pre+h);$('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free'};
+$('soundBtn').onclick=()=>{state.sound=!state.sound;save();$('soundBtn').textContent=state.sound?'Sound on':'Sound off';if(state.sound)sfx('cash')};
+$('soundBtn').textContent=state.sound?'Sound on':'Sound off';
+
+/* job maker */
+const EXAMPLE={t:'Headlight check',car:'Mini Cooper',reg:'MN10 OOP',brief:'Each car has bulbs, the number of working headlight bulbs out of 2. Print LIGHTS OK if both work, otherwise print how many need replacing.',
+  sol:'if bulbs == 2:\n    print("LIGHTS OK")\nelse:\n    print(f"Replace {2 - bulbs} bulbs")',tests:['bulbs = 2','bulbs = 1','bulbs = 0'],must:'if',hint:'Start with if bulbs == 2:',start:'# bulbs is filled in for each car\n'};
+let editing=null;
+function fillBuilder(d,isExample){$('bTitle').value=d.t||'';$('bCar').value=d.car||'';$('bReg').value=d.reg||'';$('bBrief').value=d.brief||'';$('bSol').value=d.sol||'';
+  $('bTests').value=(d.tests||[]).map(s=>s.split('\n').join('; ')).join('\n');$('bMust').value=d.must||'';$('bHint').value=d.hint||'';$('bStart').value=d.start||'';
+  $('bExampleNote').hidden=!isExample;$('bMsg').textContent='';$('bMsg').className='bmsg'}
+function openBuilder(d){editing=d?d.id:null;$('bHeading').textContent=d?'Edit job':'Make a job';$('bSave').textContent=d?'Test and save changes':'Test and add to board';
+  fillBuilder(d||EXAMPLE,!d);$('builder').hidden=false;renderJobs();$('builder').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
+function readBuilder(){return{t:$('bTitle').value.trim(),car:$('bCar').value.trim(),reg:$('bReg').value.trim().toUpperCase(),brief:$('bBrief').value.trim(),sol:$('bSol').value.replace(/\s+$/,''),
+  tests:$('bTests').value.split('\n').map(l=>GC.splitSemis(l)).filter(Boolean),must:$('bMust').value.trim(),hint:$('bHint').value.trim(),start:$('bStart').value}}
+function bmsg(t,ok){$('bMsg').textContent=t;$('bMsg').className='bmsg '+(ok?'ok':'err')}
+function addCustom(d){const err=GC.validateCustom(d);if(err){bmsg(err,false);return false}
+  if(editing){const i=state.custom.findIndex(c=>c.id===editing);d.id=editing;if(i>=0)state.custom[i]=d;delete state.code[editing];state.done=state.done.filter(x=>x!==editing)}
+  else{d.id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);state.custom.push(d)}
+  state.cur=d.id;save();$('builder').hidden=true;load();les(editing?"Job sheet updated. Give it a run.":"New job's on the board. Have a go at it yourself, or send the code to a mate.");editing=null;window.scrollTo({top:0,behavior:reduce?'auto':'smooth'});return true}
+$('bSave').onclick=()=>addCustom(readBuilder());
+$('bClose').onclick=()=>{$('builder').hidden=true;editing=null;renderJobs()};
+const enc=d=>'GC1.'+btoa(unescape(encodeURIComponent(JSON.stringify({t:d.t,car:d.car,reg:d.reg,brief:d.brief,sol:d.sol,tests:d.tests,must:d.must,hint:d.hint,start:d.start}))));
+function dec(s){s=s.trim();if(!s.startsWith('GC1.'))throw new Error('That isn\'t a Garage Code job code. They start with GC1.');const d=JSON.parse(decodeURIComponent(escape(atob(s.slice(4).replace(/\s+/g,'')))));
+  const str=x=>typeof x==='string'?x.slice(0,4000):'';return{t:str(d.t).slice(0,40),car:str(d.car).slice(0,28),reg:str(d.reg).slice(0,9),brief:str(d.brief),sol:str(d.sol),tests:Array.isArray(d.tests)?d.tests.filter(x=>typeof x==='string').slice(0,8).map(str):[],must:str(d.must).slice(0,20),hint:str(d.hint).slice(0,140),start:str(d.start)}}
+$('bImportBtn').onclick=()=>{let d;try{d=dec($('bImport').value)}catch(e){bmsg(e.message.startsWith('That')?e.message:"That code didn't come through cleanly. Ask your mate to copy it again.",false);return}
+  editing=null;if(addCustom(d))$('bImport').value=''};
+$('editJob').onclick=()=>{const lv=cur();if(lv.custom)openBuilder(lv.data)};
+$('shareJob').onclick=()=>{const lv=cur();if(!lv.custom)return;$('shareCode').value=enc(lv.data);$('shareBox').hidden=false};
+$('copyShare').onclick=()=>{const ta=$('shareCode');const done=()=>{$('copyShare').textContent='Copied';setTimeout(()=>$('copyShare').textContent='Copy code',1500)};
+  try{navigator.clipboard.writeText(ta.value).then(done,()=>{ta.select();$('copyShare').textContent='Selected. Copy it from your keyboard'})}catch(e){ta.select()}};
+let delArmed=false,delT;
+function resetDel(){delArmed=false;clearTimeout(delT);$('delJob').textContent='Delete'}
+$('delJob').onclick=()=>{const lv=cur();if(!lv.custom)return;if(!delArmed){delArmed=true;$('delJob').textContent='Tap again to delete';delT=setTimeout(resetDel,3000);return}
+  state.custom=state.custom.filter(c=>c.id!==lv.id);delete state.code[lv.id];state.done=state.done.filter(x=>x!==lv.id);state.cur=GC.LEVELS[Math.min(state.unlocked,GC.LEVELS.length-1)].id;save();load();les('Job binned.')};
+let resetArmed=false,resetT;
+$('resetAll').onclick=()=>{if(!resetArmed){resetArmed=true;$('resetAll').textContent='Tap again to wipe all progress';resetT=setTimeout(()=>{resetArmed=false;$('resetAll').textContent='Reset progress'},3000);return}
+  const keep=state.custom,snd=state.sound;state={cur:'j1',unlocked:0,cash:0,done:[],code:{},hints:{},custom:keep,sound:snd,streak:0};save();resetArmed=false;$('resetAll').textContent='Reset progress';load();les("Fresh start. Your custom jobs are still on the board.")};
+
+if(!all().some(l=>l.id===state.cur))state.cur='j1';
+load();
+})();
+</script>
+</body>
+</html>
