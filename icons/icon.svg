@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#121820"/>
+<rect y="380" width="512" height="132" fill="#2a3644"/>
+<g transform="translate(0 380)"><path d="M0 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M80 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M160 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M240 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M320 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M400 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M480 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/><path d="M560 0 l40 0 l-60 60 l-40 0 z" fill="#f3c614" opacity=".9"/></g>
+<rect x="76" y="168" width="360" height="132" rx="18" fill="#f3c614" stroke="#111" stroke-width="12"/>
+<text x="256" y="268" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="900" font-size="104" fill="#111" letter-spacing="6">GC</text>
+<text x="256" y="128" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-weight="700" font-size="64" fill="#ef7434">&lt;/&gt;</text>
+</svg>
