@@ -45,3 +45,9 @@ Each job comes with a short workshop manual page that explains the new idea befo
 - **The UI** handles the bay, Les, the job sheet, the workbench and the job maker.
 
 To add a job, add an entry to `LEVELS` in the `levels` script with a brief, a manual page, a solution and optional test cars.
+
+## Updates
+
+The game checks for a newer version when it opens and when you come back to it. If there is one, players see a small "A new version is ready" notice with an **Update** button, and there's a **Get the latest version** button in the menu at any time.
+
+When pushing an update: change the game's version number and put the same value in `version.json`.
