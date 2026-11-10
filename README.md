@@ -1,53 +1,69 @@
 # Garage Code
 
-Learn Python by running a car garage. Every job that comes into the bay is a coding problem, and Les the workshop foreman signs it off (or doesn't).
+**The sequel to [Python Kitchen](https://kralnugames.com/kitchen-coder/).** In the kitchen you learn to write Python. In the garage you learn to fix it.
+
+Every car that rolls into the bay comes with a broken program. Les the workshop foreman wants it fixed and signed off. Read the error, find the fault, and get it on the ramp.
 
 Part of **Kralnu Games** · [kralnugames.com](https://kralnugames.com)
 
 ## Play
 
-Open `index.html` in any browser, or turn on GitHub Pages for this repo (Settings → Pages → Deploy from branch → `main`, root folder) and play it on your phone.
+Open the game at [kralnugames.com/garage-code](https://kralnugames.com/garage-code/), or turn on GitHub Pages for this repo (Settings → Pages → Deploy from branch → `main`, root folder).
 
-Everything runs in the browser. It needs no install, no account and no server, and progress saves on your device.
+It runs real Python 3 in your browser. The first visit downloads Python (about 10MB). After that it's saved on your device and works offline, and it shares the same saved copy as Python Kitchen. No install, no account, and progress saves on your device.
 
 ## The job board
 
-| Job | What it teaches |
-|---|---|
-| 0412 Oil change | `print()` and text |
-| 0413 Book it in | variables and f-strings |
-| 0414 Tyre check | `if` / `else` and comparisons (runs on 3 cars) |
-| 0415 Wheel nuts | `for` loops and `range()` |
-| 0416 Parts shelf | lists, `.append()` and `len()` |
-| 0417 Write the bill | maths, brackets and `:.2f` money formatting |
-| 0418 Fault codes | text tools: `.upper()` and `.startswith()` |
-| 0419 Warm-up | `while` loops |
-| 0420 Your own tools | functions with `def` |
-| 0421 MOT day (boss) | `return`, `and` / `or`, and `min()` |
+| Bay | Job | What's wrong, and what it teaches |
+|---|---|---|
+| 1 · Won't start | 0501 Won't start | reading an error message, `SyntaxError` |
+| | 0502 Misfire | `IndentationError` and blocks |
+| | 0503 Wrong part number | `NameError` and typos |
+| | 0504 Mixed fuel | `TypeError`: text and numbers |
+| | 0505 One short | bugs that don't crash: off-by-one with `range()` |
+| 2 · Runs, but wrong | 0506 The gauge lies | edge cases, `>=` and `else` |
+| | 0507 Stuck throttle | infinite `while` loops |
+| | 0508 Always fails | the `or` trap |
+| | 0509 Lost receipt | `print` vs `return`, and `None` |
+| | 0510 Short change | `/` vs `//` |
+| 3 · Bigger jobs | 0511 Parts catalogue | lists of dictionaries, `return` inside loops |
+| | 0512 Four corners | `zip()` |
+| | 0513 The queue | `sorted()` with `key=lambda` |
+| | 0514 Quick checks | list comprehensions |
+| | 0515 Repeat faults | sets |
+| 4 · Built properly | 0516 The car class | classes and `self` |
+| | 0517 Clocking in | methods that change an object, `__str__` |
+| | 0518 Service history | files: `open()`, `"w"` vs `"a"`, `with` |
+| | 0519 Shared toolbox | the default-argument trap |
+| | 0520 MOT day (boss) | three faults in one program |
 
-Each job comes with a short workshop manual page that explains the new idea before you need it.
+Each job comes with a workshop manual page on the new idea. When it's signed off, Les tells you exactly what was wrong.
 
 ## Features
 
-- The car reacts to your code. Your `reg` variable goes on the number plate, errors make the bonnet smoke, and a signed-off job lifts the car on the ramp.
-- Hidden test cars stop hard-coded answers from passing.
-- Les explains Python errors in plain English and gives hints for £5 from the till.
-- You earn a tidy-code tip for short solutions and a bonus for finishing without hints. Your rank goes up from Apprentice to Garage owner.
-- **Make a job:** write your own job and your own answer. The game works out the expected readout from your answer, and you can share a job code with a mate.
-- The layout is built for phones, with a key bar for `: ( ) " =` and auto-indent after a colon.
+- Real Python error messages, with Les explaining each one in plain English (and guessing what you meant when you misspell something).
+- Every job runs on several test cars, so a hard-typed answer won't pass.
+- A runaway loop can't freeze the page: Les cuts the engine after a few seconds.
+- Hints from Les for £5 from the till, and a bonus for finishing without them. Your rank goes up from Apprentice to Garage owner.
+- **Make a job:** write your own broken program and its fix, and share it with a mate as a code.
+- Built for phones, with a key bar for the fiddly symbols and auto-indent after a colon.
 
 ## How it works
 
-`index.html` holds three scripts:
-
-- **`py`** is a small Python interpreter written in JavaScript. It covers the beginner subset: variables, numbers, text, f-strings, lists, `if`/`elif`/`else`, `for`/`while`, `break`/`continue`, `def`/`return`, and common built-ins and methods. Its error messages are written for beginners.
-- **`levels`** holds the jobs. Each job has its own solution, and the expected readout is worked out by running that solution, so the answer key always matches the brief.
-- **The UI** handles the bay, Les, the job sheet, the workbench and the job maker.
-
-To add a job, add an entry to `LEVELS` in the `levels` script with a brief, a manual page, a solution and optional test cars.
+- **`index.html`** is the bay, Les, the job sheet, the workbench and the job maker.
+- **`jobs.js`** holds the 20 jobs. Each has a broken starter program, the fixed solution, and test cars. The expected readout is worked out by running the fix, so the answer key can never drift from the job.
+- **`gc-worker.js`** loads Pyodide (real CPython in WebAssembly) in a background worker, so a runaway loop can be stopped without freezing the page.
+- **`harness.py`** runs the code against each test car in a fresh, empty folder, records what's printed, and reports errors with the line number.
+- **`tests/check.py`** proves every fix works on every test car and every starter really is broken. Run it with `python3 tests/check.py`.
 
 ## Updates
 
 The game checks for a newer version when it opens and when you come back to it. If there is one, players see a small "A new version is ready" notice with an **Update** button, and there's a **Get the latest version** button in the menu at any time.
 
-When pushing an update: change the game's version number and put the same value in `version.json`.
+When pushing an update: change the game's version number and put the same value in `version.json`. Bump `CACHE` in `sw.js` if the list of files changes.
+
+## Credits
+
+Made by Kralnu Games. Ideas, design and testing by Kris. Built with Claude, an AI by Anthropic.
+
+© 2026 kralnu90. All rights reserved.
