@@ -212,6 +212,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-vi
 .engine-note{margin:0 0 8px;font-size:13px;line-height:1.45;color:var(--muted)}
 .diag{margin:6px 0 8px;font-size:14px;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.kb{display:inline-block;width:.9em;height:.9em;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAnUlEQVR4XmNgGGjAiMsB/89Y/keXYzQ5jqEeQwCbRnwGMSFLEqMZBL6vUYW7DsUAZHDp2h+s/B8P3qCIww3AZzvIMD0tFhSNMFfgdAEMIGtGtx0E8BpASDNBA0DOBhmCzWYYIOgFmCG4ANwAbIkEZDMIYzOEM+Q2OA2hBi0UgDSpcaHaiR4LMICREpETCS4Asx0EcOYFbAYha6QaAAD/mUkTj0WiJAAAAABJRU5ErkJggg==) center/contain no-repeat;image-rendering:pixelated;vertical-align:-0.08em;margin-right:4px}
 </style>
 </head>
 <body>
@@ -222,7 +223,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-vi
       <span class="brand-sub"><b id="rank">Apprentice</b> · <span id="bayName">Bay 1</span></span>
     </div>
     <div class="till">
-      <span class="till-label">Takings</span><span id="cash" class="till-num">£0</span>
+      <span class="till-label">Takings</span><span id="cash" class="till-num"><i class="kb"></i>0 Kb</span>
       <button class="sound" id="soundBtn" type="button">Sound on</button>
       <button class="sound" data-install type="button">Install app</button>
     </div>
@@ -320,7 +321,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-vi
     </div>
     <div class="keys" id="keys" aria-label="Code keys"></div>
     <div class="actions">
-      <button class="btn ghost" id="hintBtn" type="button">Ask Les · £5</button>
+      <button class="btn ghost" id="hintBtn" type="button">Ask Les · 5 Kb</button>
       <button class="btn run" id="runBtn" type="button">Run job</button>
     </div>
   </section>
@@ -494,7 +495,7 @@ makeNuts('nutsR',110);makeNuts('nutsF',262);
 const nuts=()=>[...document.querySelectorAll('.nut')];
 function les(t){$('les').textContent=t}
 function rank(){let r=RANKS[0][1];for(const[c,n]of RANKS)if(state.cash>=c)r=n;return r}
-function setCash(bump){$('cash').textContent='£'+state.cash;$('rank').textContent=rank();if(bump){const c=$('cash');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
+function setCash(bump){$('cash').innerHTML='<i class="kb"></i>'+state.cash+' Kb';$('rank').textContent=rank();if(bump){const c=$('cash');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
 function setCar(colour,reg){$('body').setAttribute('fill',colour);$('plate').textContent=reg}
 function fx(cls,ms){bay.classList.remove(cls);void bay.offsetWidth;bay.classList.add(cls);setTimeout(()=>bay.classList.remove(cls),ms)}
 const carColour=(lv,i)=>lv.tests.length>1?(i===0?lv.colour:PALETTE[i%PALETTE.length]):lv.colour;
@@ -525,7 +526,7 @@ async function load(){const lv=cur();
   codeEl.value=state.code[lv.id]??lv.starter;errLine=0;sync();
   out.innerHTML=`<span class="dim">Press Run job to test the code${lv.tests.length>1?` on all ${lv.tests.length} cars`:' on the car'}.</span>`;$('runs').textContent='';
   $('paid').hidden=true;les(lv.intro);renderHud(lv);renderJobs();setCash();
-  $('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free';
+  $('hintBtn').textContent=state.cash>=5?'Ask Les · 5 Kb':'Ask Les · free';
   $('targetLabel').textContent=lv.tests.length>1?"Car 1's readout should show":'Readout should show';$('target').textContent='…';
   const want=await expected(lv);if(cur()!==lv)return;$('target').textContent=want?want[0].join('\n'):'(the job sheet could not be worked out)'}
 
@@ -574,8 +575,8 @@ async function runJob(){if(busy||ENGINE.status!=='ready')return;busy=true;runBtn
   if(fleet)setCar(lv.colour,lv.reg);
   bay.classList.add('lifted');nuts().forEach(n=>n.classList.add('lit'));setTimeout(()=>fx('flash',1300),500);sfx('ok');
   const first=!state.done.includes(lv.id);let items=[];state.streak=(state.streak||0)+1;
-  if(first){let earn=lv.pay;items.push(`£${lv.pay} labour`);
-    const usedHints=state.hints[lv.id]||0;if(!usedHints&&!lv.custom){earn+=5;items.push('£5 no-hints bonus')}
+  if(first){let earn=lv.pay;items.push(`${lv.pay} Kb labour`);
+    const usedHints=state.hints[lv.id]||0;if(!usedHints&&!lv.custom){earn+=5;items.push('5 Kb no-hints bonus')}
     state.cash+=earn;state.done.push(lv.id);const mi=mainIdx(lv.id);if(mi>=0&&state.unlocked<mi+1&&mi+1<JOBS.length)state.unlocked=mi+1;setTimeout(()=>{setCash(true);sfx('cash')},700)}
   else items.push("Already paid for this job. Les doesn't pay twice.");
   save();
@@ -590,13 +591,13 @@ async function runJob(){if(busy||ENGINE.status!=='ready')return;busy=true;runBtn
   if(nextMain)$('nextBtn').onclick=()=>{state.cur=nextMain.id;save();load();window.scrollTo({top:0,behavior:reduce?'auto':'smooth'})};
   if($('makeBtn'))$('makeBtn').onclick=()=>openBuilder();
   renderJobs();finish()}
-function finish(){busy=false;runBtn.disabled=ENGINE.status!=='ready';$('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free'}
+function finish(){busy=false;runBtn.disabled=ENGINE.status!=='ready';$('hintBtn').textContent=state.cash>=5?'Ask Les · 5 Kb':'Ask Les · free'}
 
 runBtn.onclick=runJob;
 $('resetBtn').onclick=()=>{const lv=cur();codeEl.value=lv.starter;delete state.code[lv.id];save();errLine=0;sync();codeEl.focus()};
 $('hintBtn').onclick=()=>{const lv=cur();const k=state.hints[lv.id]||0;const h=lv.hints[Math.min(k,lv.hints.length-1)];
   let pre='';if(state.cash>=5){state.cash-=5;setCash()}else pre=LES.broke+'\n';
-  state.hints[lv.id]=k+1;save();les(pre+h);$('hintBtn').textContent=state.cash>=5?'Ask Les · £5':'Ask Les · free'};
+  state.hints[lv.id]=k+1;save();les(pre+h);$('hintBtn').textContent=state.cash>=5?'Ask Les · 5 Kb':'Ask Les · free'};
 $('soundBtn').onclick=()=>{state.sound=!state.sound;save();$('soundBtn').textContent=state.sound?'Sound on':'Sound off';if(state.sound)sfx('cash')};
 $('soundBtn').textContent=state.sound?'Sound on':'Sound off';
 
@@ -702,7 +703,7 @@ html:not(.kg-can-install) [data-install]{display:none!important}
 // Kralnu Games update check. When you push an update, change the game's version
 // AND version.json to the same new value; players then get a "new version" notice.
 (function(){
-  var NAME="Garage Code",BUILD="2026.11.10",CACHES=["garagecode-"],CHECK=true;
+  var NAME="Garage Code",BUILD="2026.11.26",CACHES=["garagecode-"],CHECK=true;
   var path=location.pathname,dir=path.replace(/[^/]*$/,''),last=0,bar=null,busy=false;
   if(/^\?v=\d+$/.test(location.search)){try{history.replaceState(history.state,'',path+location.hash)}catch(e){}}
   function build(){return String(window.kgBuild!=null?window.kgBuild:BUILD)}

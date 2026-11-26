@@ -44,7 +44,7 @@ Each job comes with a workshop manual page on the new idea. When it's signed off
 - Real Python error messages, with Les explaining each one in plain English (and guessing what you meant when you misspell something).
 - Every job runs on several test cars, so a hard-typed answer won't pass.
 - A runaway loop can't freeze the page: Les cuts the engine after a few seconds.
-- Hints from Les for £5 from the till, and a bonus for finishing without them. Your rank goes up from Apprentice to Garage owner.
+- Hints from Les for 5 Kb from the till, and a bonus for finishing without them. Your rank goes up from Apprentice to Garage owner.
 - **Make a job:** write your own broken program and its fix, and share it with a mate as a code.
 - Built for phones, with a key bar for the fiddly symbols and auto-indent after a colon.
 

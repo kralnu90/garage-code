@@ -3,7 +3,7 @@
 // after the first visit. Our own files load network-first, so pushing a new
 // version still reaches players straight away. The engine cache has the same
 // name as Python Kitchen's, so both games share one saved copy of Python.
-const CACHE = "garagecode-v2";
+const CACHE = "garagecode-v3";
 const PYODIDE_CACHE = "pyodide-0.26.4";
 const PYODIDE_BASE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
 const CORE = ["./", "./index.html", "./jobs.js", "./gc-worker.js", "./harness.py", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
